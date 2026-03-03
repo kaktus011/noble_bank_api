@@ -1,0 +1,6 @@
+@NobleBank.API_HostAddress = http://localhost:5108
+
+GET {{NobleBank.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="NobleBank.API/NobleBank.API.csproj" />
+  <Project Path="NobleBank.Application/NobleBank.Application.csproj" />
+  <Project Path="NobleBank.Domain/NobleBank.Domain.csproj" />
+  <Project Path="NobleBank.Infrastructure/NobleBank.Infrastructure.csproj" />
+</Solution>
