@@ -1,5 +1,4 @@
 ﻿using NobleBank.Domain.Interfaces;
-using NobleBank.Domain.Common;
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
 using System.Text;
