@@ -1,5 +1,4 @@
-﻿using System;
-using NobleBank.Domain.Common;
+﻿using NobleBank.Domain.Common;
 
 namespace NobleBank.Domain.Entities
 {

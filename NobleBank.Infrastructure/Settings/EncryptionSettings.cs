@@ -1,7 +1,10 @@
-﻿public class EncryptionSettings
+﻿namespace NobleBank.Infrastructure.Settings
 {
-    public const string SectionName = "Encryption";
+    public class EncryptionSettings
+    {
+        public const string SectionName = "Encryption";
 
-    public string Key { get; init; } = string.Empty;
-    public string IV { get; init; } = string.Empty;
+        public string Key { get; init; } = string.Empty;
+        public string IV { get; init; } = string.Empty;
+    }
 }

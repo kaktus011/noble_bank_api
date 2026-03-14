@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNet.Identity.EntityFramework;
 using System;
 
-public class ApplicationUser : IdentityUser
+namespace NobleBank.Domain.Entities
 {
-    public ApplicationUser()
+    public class ApplicationUser : IdentityUser
     {
+        public ApplicationUser()
+        {
 
+        }
     }
 }
