@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNet.Identity.EntityFramework;
-using System;
+﻿using Microsoft.AspNetCore.Identity;
 
 namespace NobleBank.Domain.Entities
 {
