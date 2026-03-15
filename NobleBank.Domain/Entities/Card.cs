@@ -1,27 +1,27 @@
-﻿using NobleBank.Domain.Common;
-using NobleBank.Domain.Events;
-using NobleBank.Domain.Interfaces;
+﻿using NobleBank.Domain.Events;
 using static NobleBank.Domain.Common.Card;
 
 namespace NobleBank.Domain.Entities
 {
     public class Card : BaseEntity
     {
-        public string EncryptedCardNumber { get; private set; } = string.Empty;
+        public string CardNumber { get; private set; } = string.Empty;
 
         public string Last4Digits { get; private set; } = string.Empty;
 
         public string CardHolder { get; private set; } = string.Empty;
 
-        public CardType Type { get; private set; }
+        public Common.Card.Type Type { get; private set; }
 
-        public CardStatus Status { get; private set; }
+        public Brand Brand { get; private set; }
+
+        public Status Status { get; private set; }
 
         public decimal Balance { get; private set; }
 
         public decimal? CreditLimit { get; private set; }
 
-        public string Currency { get; private set; } = Constants.Card.DefaultCurrency;
+        public string Currency { get; private set; } = Common.Constants.Card.DefaultCurrency;
 
         public DateTime ExpiryDate { get; private set; }
 
@@ -41,24 +41,25 @@ namespace NobleBank.Domain.Entities
         private Card() { }
 
         public static Card Create(
-            string cardHolder,
-            string plainCardNumber,
-            CardType type,
-            string userId,
-            string createdBy,
-            IEncryptionService encryption,
-            decimal initialBalance = 0,
-            decimal? creditLimit = null)
+         string cardHolder,
+         string plainCardNumber,
+         Common.Card.Type type,
+         Brand brand,
+         string userId,
+         string createdBy,
+         decimal initialBalance = 0,
+         decimal? creditLimit = null)
         {
             return new Card
             {
-                CardHolder = cardHolder.ToUpper().Trim(),
-                EncryptedCardNumber = encryption.Encrypt(plainCardNumber),
+                CardNumber = plainCardNumber,
                 Last4Digits = plainCardNumber[^4..],
+                CardHolder = cardHolder.ToUpper().Trim(),
                 Type = type,
-                Status = CardStatus.Pending,
+                Brand = brand,
+                Status = Status.Pending,
                 Balance = initialBalance,
-                CreditLimit = type == CardType.Credit ? creditLimit : null,
+                CreditLimit = type == Common.Card.Type.Credit ? creditLimit : null,
                 ExpiryDate = DateTime.UtcNow.AddYears(4),
                 UserId = userId,
                 CreatedBy = createdBy
@@ -67,7 +68,7 @@ namespace NobleBank.Domain.Entities
 
         public void Block(string reason, string performedBy)
         {
-            Status = CardStatus.Blocked;
+            Status = Status.Blocked;
             UpdatedAt = DateTime.UtcNow;
             LastModifiedBy = performedBy;
 

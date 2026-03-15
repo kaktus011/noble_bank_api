@@ -12,7 +12,7 @@ namespace NobleBank.Domain.Entities
 
 		public string Currency { get; private set; } = string.Empty;
 
-		public Transactions.TransactionType Type { get; private set; }
+		public Transactions.Type Type { get; private set; }
 
 		public string Description { get; private set; } = string.Empty;
 
@@ -24,13 +24,15 @@ namespace NobleBank.Domain.Entities
 
 		public string? CreatedBy { get; private set; }
 
-		private Transaction() { }
+        public DateTime OccurredAt { get; set; }	// not in Creat()
+
+        private Transaction() { }
 
 		public static Transaction Create(
 			Guid cardId,
 			decimal amount,
 			string currency,
-			Transactions.TransactionType type,
+			Transactions.Type type,
 			string description,
 			string createdBy,
 			string? receiverAccount = null,

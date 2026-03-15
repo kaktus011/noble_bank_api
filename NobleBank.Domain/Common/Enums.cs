@@ -2,7 +2,7 @@
 {
     public class Card
     {
-        public enum CardBrand
+        public enum Brand
         {
             Visa = 1,
             Mastercard = 2,
@@ -10,14 +10,14 @@
             Maestro = 4
         }
 
-        public enum CardType
+        public enum Type
         {
             Debit = 0,
             Credit = 1,
             Virtual = 2,
         }
 
-        public enum CardStatus
+        public enum Status
         {
             Unknown = 0,
             Pending = 1,
@@ -29,7 +29,7 @@
 
     public class Loans
     {
-        public enum LoanStatus
+        public enum Status
         {
             Active = 0,
             Pending = 1,
@@ -39,7 +39,7 @@
 
     public class Transactions
     {
-        public enum TransactionType
+        public enum Type
         {
             Income = 0,
             Expense = 1,
