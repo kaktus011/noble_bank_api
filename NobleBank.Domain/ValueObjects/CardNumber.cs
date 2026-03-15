@@ -1,5 +1,6 @@
 using NobleBank.Domain.Common;
 using NobleBank.Domain.Interfaces;
+using System.Linq;
 
 namespace NobleBank.Domain.ValueObjects
 {
@@ -16,7 +17,10 @@ namespace NobleBank.Domain.ValueObjects
 
         public static CardNumber Create(string plainNumber, IEncryptionService encryption)
         {
-            if (!IsValidLuhn(plainNumber))
+            if (string.IsNullOrEmpty(plainNumber) ||
+                plainNumber.Length < 4 ||
+                !plainNumber.All(char.IsDigit) ||
+                !IsValidLuhn(plainNumber))
             {
                 throw new DomainException("Invalid card number.");
             }
@@ -29,7 +33,12 @@ namespace NobleBank.Domain.ValueObjects
 
         private static bool IsValidLuhn(string number)
         {
-            int[] digits = number.Where(char.IsDigit).Select(c => c - '0').ToArray();
+            if (string.IsNullOrEmpty(number) || !number.All(char.IsDigit))
+            {
+                return false;
+            }
+
+            int[] digits = number.Select(c => c - '0').ToArray();
             int sum = 0;
             bool isSecond = false;
 
