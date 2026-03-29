@@ -12,9 +12,9 @@ namespace NobleBank.Domain.Entities
 
 		public string Currency { get; private set; } = string.Empty;
 
-		public Transactions.TransactionType Type { get; private set; }
+		public Transactions.Type Type { get; private set; }
 
-		public string Description { get; private set; } = string.Empty;
+		public string? Description { get; private set; } = string.Empty;
 
 		public string? ReceiverAccount { get; private set; }
 
@@ -24,14 +24,16 @@ namespace NobleBank.Domain.Entities
 
 		public string? CreatedBy { get; private set; }
 
-		private Transaction() { }
+        public DateTime OccurredAt { get; private set; }
+
+        private Transaction() { }
 
 		public static Transaction Create(
 			Guid cardId,
 			decimal amount,
 			string currency,
-			Transactions.TransactionType type,
-			string description,
+			Transactions.Type type,
+			string? description,
 			string createdBy,
 			string? receiverAccount = null,
 			string? senderAccount = null)
@@ -44,7 +46,8 @@ namespace NobleBank.Domain.Entities
 				Type = type,
 				Description = description,
 				CreatedBy = createdBy,
-				ReceiverAccount = receiverAccount,
+				OccurredAt = DateTime.UtcNow,
+                ReceiverAccount = receiverAccount,
 				SenderAccount = senderAccount
 			};
 		}

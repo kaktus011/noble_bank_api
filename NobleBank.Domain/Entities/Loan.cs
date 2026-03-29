@@ -6,11 +6,9 @@ namespace NobleBank.Domain.Entities
 	{
 		public string Name { get; private set; } = string.Empty;
 
-		public decimal OutstandingAmount { get; private set; }
-
 		public decimal InterestRate { get; private set; }
 
-		public LoanStatus Status { get; private set; }
+		public Status Status { get; private set; }
 
 		public string UserId { get; private set; } = string.Empty;
 
@@ -20,11 +18,15 @@ namespace NobleBank.Domain.Entities
 
 		public string? CreatedBy { get; private set; }
 
-		private Loan() { }
+        public decimal Amount { get; private set; }
+        
+		public decimal RemainingAmount { get; private set; }
+
+        private Loan() { }
 
 		public static Loan Create(
 			string name,
-			decimal outstandingAmount,
+			decimal amount,
 			decimal interestRate,
 			string userId,
 			string createdBy)
@@ -32,12 +34,27 @@ namespace NobleBank.Domain.Entities
 			return new Loan
 			{
 				Name = name,
-				OutstandingAmount = outstandingAmount,
+				Amount = amount,
+				RemainingAmount = amount,
 				InterestRate = interestRate,
-				Status = LoanStatus.Active,
+				Status = Status.Active,
 				UserId = userId,
 				CreatedBy = createdBy
 			};
 		}
-	}
+
+        public void ApplyPayment(decimal paymentAmount)
+        {
+            if (paymentAmount < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(paymentAmount), "Payment amount cannot be negative.");
+            }
+            if (paymentAmount > RemainingAmount)
+            {
+                throw new InvalidOperationException("Payment amount cannot exceed the remaining loan amount.");
+            }
+
+            RemainingAmount -= paymentAmount;
+        }
+    }
 }

@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
 using System.Text;
+using NobleBank.Infrastructure.Settings;
 
 namespace NobleBank.Infrastructure.Services
 {
