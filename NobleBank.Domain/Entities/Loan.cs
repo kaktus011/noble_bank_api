@@ -18,9 +18,9 @@ namespace NobleBank.Domain.Entities
 
 		public string? CreatedBy { get; private set; }
 
-        public decimal RemainingAmount { get; set; }  // not in Create()
-
-        public decimal Amount { get; set; }
+        public decimal Amount { get; private set; }
+        
+		public decimal RemainingAmount { get; set; }
 
         private Loan() { }
 
@@ -35,6 +35,7 @@ namespace NobleBank.Domain.Entities
 			{
 				Name = name,
 				Amount = amount,
+				RemainingAmount = amount,
 				InterestRate = interestRate,
 				Status = Status.Active,
 				UserId = userId,

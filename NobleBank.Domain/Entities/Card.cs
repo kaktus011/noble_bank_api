@@ -1,4 +1,5 @@
 ﻿using NobleBank.Domain.Events;
+using NobleBank.Domain.Common;
 using static NobleBank.Domain.Common.Card;
 using Type = NobleBank.Domain.Common.Card.Type;
 
@@ -22,7 +23,7 @@ namespace NobleBank.Domain.Entities
 
         public decimal? CreditLimit { get; private set; }
 
-        public string Currency { get; private set; } = Common.Constants.Card.DefaultCurrency;
+        public string Currency { get; private set; } = Constants.Card.DefaultCurrency;
 
         public DateTime ExpiryDate { get; private set; }
 
@@ -43,7 +44,8 @@ namespace NobleBank.Domain.Entities
 
         public static Card Create(
          string cardHolder,
-         string plainCardNumber,Common.Card.Type type,
+         string plainCardNumber,
+         Type type,
          Brand brand,
          string userId,
          string createdBy,
@@ -59,7 +61,7 @@ namespace NobleBank.Domain.Entities
                 Brand = brand,
                 Status = Status.Pending,
                 Balance = initialBalance,
-                CreditLimit = type == Common.Card.Type.Credit ? creditLimit : null,
+                CreditLimit = type == Type.Credit ? creditLimit : null,
                 ExpiryDate = DateTime.UtcNow.AddYears(4),
                 UserId = userId,
                 CreatedBy = createdBy

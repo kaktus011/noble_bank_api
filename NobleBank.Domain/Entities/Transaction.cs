@@ -24,7 +24,7 @@ namespace NobleBank.Domain.Entities
 
 		public string? CreatedBy { get; private set; }
 
-        public DateTime OccurredAt { get; set; }	// not in Creat()
+        public DateTime OccurredAt { get; private set; }
 
         private Transaction() { }
 
@@ -46,7 +46,8 @@ namespace NobleBank.Domain.Entities
 				Type = type,
 				Description = description,
 				CreatedBy = createdBy,
-				ReceiverAccount = receiverAccount,
+				OccurredAt = DateTime.UtcNow,
+                ReceiverAccount = receiverAccount,
 				SenderAccount = senderAccount
 			};
 		}

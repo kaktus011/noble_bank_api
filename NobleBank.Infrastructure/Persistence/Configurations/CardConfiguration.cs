@@ -1,19 +1,11 @@
 ﻿using NobleBank.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using NobleBank.Domain.Interfaces;
 
 namespace NobleBank.Infrastructure.Persistence.Configurations
 {
     public class CardConfiguration : IEntityTypeConfiguration<Card>
     {
-        private readonly IEncryptionService _encryption;
-
-        public CardConfiguration(IEncryptionService encryption)
-        {
-            _encryption = encryption;
-        }
-
         public void Configure(EntityTypeBuilder<Card> builder)
         {
             // Таблица
@@ -24,10 +16,7 @@ namespace NobleBank.Infrastructure.Persistence.Configurations
             builder.Property(c => c.CardNumber)
                 .HasColumnName("CardNumber")
                 .HasColumnType("nvarchar(500)")
-                .HasConversion(
-                    plain => _encryption.Encrypt(plain),
-                    stored => _encryption.Decrypt(stored)
-                );
+                .IsRequired();
 
             // --- Основни полета ---
             builder.Property(c => c.Last4Digits)
@@ -83,7 +72,7 @@ namespace NobleBank.Infrastructure.Persistence.Configurations
 
             builder.Property(c => c.UpdatedAt)
                 .HasColumnType("datetime2")
-                .IsRequired(false);
+                .IsRequired();
 
             // --- Релация с User ---
             builder.HasOne(c => c.User)
@@ -96,6 +85,9 @@ namespace NobleBank.Infrastructure.Persistence.Configurations
                 .WithOne(t => t.Card)
                 .HasForeignKey(t => t.CardId)
                 .OnDelete(DeleteBehavior.Cascade);  // транзакциите се трият с картата
+
+            builder.Navigation(c => c.Transactions)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
 
             // --- Индекси ---
             builder.HasIndex(c => c.UserId)
