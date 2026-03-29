@@ -4,15 +4,16 @@ namespace NobleBank.Domain.Entities
 {
     public class ApplicationUser : IdentityUser
     {
-        public ApplicationUser()
-        {
+        public string FirstName { get; set; } = string.Empty;
 
-        }
+        public string LastName { get; set; } = string.Empty;
+        
+        public string FullName => $"{FirstName} {LastName}".Trim();
 
-        public IEnumerable<Card> Cards { get; set; }
+        public ICollection<Card> Cards { get; set; } = [];
 
-        public IEnumerable<Loan> Loans { get; set; }
+        public ICollection<Loan> Loans { get; set; } = [];
 
-        public IEnumerable<Post> Posts { get; set; }
+        public ICollection<Post> Posts { get; set; } = [];
     }
 }

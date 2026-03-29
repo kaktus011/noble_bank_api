@@ -21,6 +21,8 @@ namespace NobleBank.Infrastructure.Persistence
 
         public DbSet<Post> Posts => Set<Post>();
 
+        public DbSet<ApplicationUser> Users => Set<ApplicationUser>();
+
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options,
             IMediator mediator,
             IEncryptionService encryption) : base(options) 
@@ -61,7 +63,6 @@ namespace NobleBank.Infrastructure.Persistence
 
             int result = await base.SaveChangesAsync(cancellationToken);
 
-            // Domain events се изпращат СЛЕД успешен запис
             await DispatchDomainEventsAsync();
 
             return result;
