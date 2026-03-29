@@ -1,5 +1,6 @@
 ﻿using NobleBank.Domain.Events;
 using static NobleBank.Domain.Common.Card;
+using Type = NobleBank.Domain.Common.Card.Type;
 
 namespace NobleBank.Domain.Entities
 {
@@ -11,7 +12,7 @@ namespace NobleBank.Domain.Entities
 
         public string CardHolder { get; private set; } = string.Empty;
 
-        public Common.Card.Type Type { get; private set; }
+        public Type Type { get; private set; }
 
         public Brand Brand { get; private set; }
 
@@ -42,8 +43,7 @@ namespace NobleBank.Domain.Entities
 
         public static Card Create(
          string cardHolder,
-         string plainCardNumber,
-         Common.Card.Type type,
+         string plainCardNumber,Common.Card.Type type,
          Brand brand,
          string userId,
          string createdBy,

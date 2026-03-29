@@ -26,7 +26,7 @@ namespace NobleBank.Domain.Entities
 
 		public static Loan Create(
 			string name,
-			decimal Amount,
+			decimal amount,
 			decimal interestRate,
 			string userId,
 			string createdBy)
@@ -34,7 +34,7 @@ namespace NobleBank.Domain.Entities
 			return new Loan
 			{
 				Name = name,
-				Amount = Amount,
+				Amount = amount,
 				InterestRate = interestRate,
 				Status = Status.Active,
 				UserId = userId,

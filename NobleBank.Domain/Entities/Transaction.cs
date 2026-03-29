@@ -14,7 +14,7 @@ namespace NobleBank.Domain.Entities
 
 		public Transactions.Type Type { get; private set; }
 
-		public string Description { get; private set; } = string.Empty;
+		public string? Description { get; private set; } = string.Empty;
 
 		public string? ReceiverAccount { get; private set; }
 
@@ -33,7 +33,7 @@ namespace NobleBank.Domain.Entities
 			decimal amount,
 			string currency,
 			Transactions.Type type,
-			string description,
+			string? description,
 			string createdBy,
 			string? receiverAccount = null,
 			string? senderAccount = null)
