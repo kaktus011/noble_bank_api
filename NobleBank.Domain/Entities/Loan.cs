@@ -20,7 +20,7 @@ namespace NobleBank.Domain.Entities
 
         public decimal Amount { get; private set; }
         
-		public decimal RemainingAmount { get; set; }
+		public decimal RemainingAmount { get; private set; }
 
         private Loan() { }
 
@@ -42,5 +42,19 @@ namespace NobleBank.Domain.Entities
 				CreatedBy = createdBy
 			};
 		}
-	}
+
+        public void ApplyPayment(decimal paymentAmount)
+        {
+            if (paymentAmount < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(paymentAmount), "Payment amount cannot be negative.");
+            }
+            if (paymentAmount > RemainingAmount)
+            {
+                throw new InvalidOperationException("Payment amount cannot exceed the remaining loan amount.");
+            }
+
+            RemainingAmount -= paymentAmount;
+        }
+    }
 }

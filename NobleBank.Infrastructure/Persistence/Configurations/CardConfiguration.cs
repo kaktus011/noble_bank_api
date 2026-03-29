@@ -12,7 +12,6 @@ namespace NobleBank.Infrastructure.Persistence.Configurations
             builder.ToTable("Cards");
             builder.HasKey(c => c.Id);
 
-            // --- Картов номер с Value Converter ---
             builder.Property(c => c.CardNumber)
                 .HasColumnName("CardNumber")
                 .HasColumnType("nvarchar(500)")
