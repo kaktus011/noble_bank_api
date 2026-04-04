@@ -61,7 +61,6 @@ namespace NobleBank.Infrastructure.Persistence
 
             int result = await base.SaveChangesAsync(cancellationToken);
 
-            // Domain events се изпращат СЛЕД успешен запис
             await DispatchDomainEventsAsync();
 
             return result;
