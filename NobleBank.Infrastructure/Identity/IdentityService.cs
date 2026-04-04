@@ -35,7 +35,7 @@ namespace NobleBank.Infrastructure.Identity
                 LastName = lastName
             };
 
-            var result = await _userManager.CreateAsync(user, password);
+            IdentityResult result = await _userManager.CreateAsync(user, password);
 
             if (!result.Succeeded)
             {

@@ -1,4 +1,11 @@
 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using NobleBank.Application;
+using NobleBank.Infrastructure;
+using NobleBank.Infrastructure.Settings;
+using System.Text;
+
 namespace NobleBank.API
 {
     public class Program

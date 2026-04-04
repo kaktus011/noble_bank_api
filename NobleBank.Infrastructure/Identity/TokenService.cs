@@ -1,7 +1,8 @@
 ﻿using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using NobleBank.Application.Common.Interfaces;
+using NobleBank.Infrastructure.Settings;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
@@ -20,10 +21,10 @@ namespace NobleBank.Infrastructure.Identity
         {
             var claims = new[]
             {
-            new Claim(JwtRegisteredClaimNames.Sub,   userId),
-            new Claim(JwtRegisteredClaimNames.Email, email),
-            new Claim(JwtRegisteredClaimNames.Name,  fullName),
-            new Claim(JwtRegisteredClaimNames.Jti,   Guid.NewGuid().ToString())  // уникален ID на токена
+            new Claim(Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames.Sub,   userId),
+            new Claim(Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames.Email, email),
+            new Claim(Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames.Name,  fullName),
+            new Claim(Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames.Jti,   Guid.NewGuid().ToString())  // уникален ID на токена
             };
 
             SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Secret));
