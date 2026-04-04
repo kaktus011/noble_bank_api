@@ -27,8 +27,10 @@ namespace NobleBank.Application.Common.Behaviours
 
             ValidationContext<TRequest> context = new(request);
 
-            List<ValidationFailure> failures = _validators
-                .Select(v => v.Validate(context))
+            ValidationResult[] validationResults = await Task.WhenAll(
+                _validators.Select(v => v.ValidateAsync(context, cancellationToken)));
+
+            List<ValidationFailure> failures = validationResults
                 .SelectMany(r => r.Errors)
                 .Where(f => f is not null)
                 .ToList();

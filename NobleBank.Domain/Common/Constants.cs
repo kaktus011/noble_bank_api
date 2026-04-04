@@ -21,9 +21,9 @@
             public const string PasswordRequired = "Password is required.";
         }
 
-        public class ErrrorMessages
+        public class ErrorMessages
         {
-            public const string IvalidEmailFormat = "Invalid email format.";
+            public const string InvalidEmailFormat = "Invalid email format.";
         }
     }
 }

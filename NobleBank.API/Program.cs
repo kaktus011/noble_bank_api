@@ -44,6 +44,7 @@ namespace NobleBank.API
             // JWT Authentication
             var jwtSettings = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()!;
 
+            builder.Services.AddAuthorization();
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

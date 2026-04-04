@@ -38,7 +38,7 @@ namespace NobleBank.Application.Features.Auth.Commands.Login
 
             string token = _tokenService.GenerateToken(
                 userId,
-                request.Email,
+                user?.Email ?? request.Email,
                 user?.FullName ?? string.Empty);
 
             return new AuthResult(true, token, null);

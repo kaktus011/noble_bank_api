@@ -21,8 +21,6 @@ namespace NobleBank.Infrastructure.Persistence
 
         public DbSet<Post> Posts => Set<Post>();
 
-        public DbSet<ApplicationUser> Users => Set<ApplicationUser>();
-
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options,
             IMediator mediator,
             IEncryptionService encryption) : base(options) 
