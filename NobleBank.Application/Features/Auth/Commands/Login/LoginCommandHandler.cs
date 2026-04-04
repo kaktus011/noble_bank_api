@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using NobleBank.Application.Common.Interfaces;
-using NobleBank.Application.Features.Auth.Commands.Register;
 using NobleBank.Domain.Entities;
 
 namespace NobleBank.Application.Features.Auth.Commands.Login

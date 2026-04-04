@@ -23,7 +23,7 @@ namespace NobleBank.API
                 {
                     Name = "Authorization",
                     Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
-                    Scheme = "Bearer",
+                    Scheme = "bearer",
                     BearerFormat = "JWT",
                     In = Microsoft.OpenApi.Models.ParameterLocation.Header,
                     Description = "Enter your JWT token"
