@@ -1,6 +1,6 @@
 ﻿namespace NobleBank.Domain.Common
 {
-    public class Card
+    public class CardEnum
     {
         public enum Brand
         {
@@ -27,7 +27,7 @@
         }
     }
 
-    public class Loans
+    public class LoansEnum
     {
         public enum Status
         {
@@ -37,7 +37,7 @@
         }
     }
 
-    public class Transactions
+    public class TransactionsEnum
     {
         public enum Type
         {

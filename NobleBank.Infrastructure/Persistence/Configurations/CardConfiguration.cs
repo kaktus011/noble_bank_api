@@ -44,7 +44,7 @@ namespace NobleBank.Infrastructure.Persistence.Configurations
                 .IsRequired();
 
             // --- Enums като int ---
-            builder.Property(c => c.Type)
+            builder.Property(c => c.CardType)
                 .HasConversion<int>()
                 .IsRequired();
 

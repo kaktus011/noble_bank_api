@@ -1,4 +1,4 @@
-﻿using static NobleBank.Domain.Common.Loans;
+﻿using static NobleBank.Domain.Common.LoansEnum;
 
 namespace NobleBank.Domain.Entities
 {
