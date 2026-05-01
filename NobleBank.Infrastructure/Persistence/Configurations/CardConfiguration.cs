@@ -14,7 +14,7 @@ namespace NobleBank.Infrastructure.Persistence.Configurations
 
             builder.Property(c => c.CardNumber)
                 .HasColumnName("CardNumber")
-                .HasColumnType("nvarchar(500)")
+                .HasColumnType("varchar(500)")
                 .IsRequired();
 
             // --- Основни полета ---
@@ -44,7 +44,7 @@ namespace NobleBank.Infrastructure.Persistence.Configurations
                 .IsRequired();
 
             // --- Enums като int ---
-            builder.Property(c => c.Type)
+            builder.Property(c => c.CardType)
                 .HasConversion<int>()
                 .IsRequired();
 
@@ -89,6 +89,10 @@ namespace NobleBank.Infrastructure.Persistence.Configurations
                 .UsePropertyAccessMode(PropertyAccessMode.Field);
 
             // --- Индекси ---
+            builder.HasIndex(c => c.CardNumber)
+                .IsUnique()
+                .HasDatabaseName("UX_Cards_CardNumber");
+
             builder.HasIndex(c => c.UserId)
                 .HasDatabaseName("IX_Cards_UserId");
 

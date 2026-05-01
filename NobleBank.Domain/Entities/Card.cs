@@ -1,7 +1,7 @@
 ﻿using NobleBank.Domain.Events;
 using NobleBank.Domain.Common;
-using static NobleBank.Domain.Common.Card;
-using Type = NobleBank.Domain.Common.Card.Type;
+using static NobleBank.Domain.Common.CardEnum;
+using Type = NobleBank.Domain.Common.CardEnum.Type;
 
 namespace NobleBank.Domain.Entities
 {
@@ -13,7 +13,7 @@ namespace NobleBank.Domain.Entities
 
         public string CardHolder { get; private set; } = string.Empty;
 
-        public Type Type { get; private set; }
+        public Type CardType { get; private set; }
 
         public Brand Brand { get; private set; }
 
@@ -31,9 +31,13 @@ namespace NobleBank.Domain.Entities
 
         public ApplicationUser User { get; private set; } = null!;
 
-        private readonly List<Transaction> _transactions = [];   // -> ????
+        private readonly List<Transaction> _transactions = [];
 
         public IReadOnlyCollection<Transaction> Transactions => _transactions.AsReadOnly();
+
+        public string MaskedNumber => string.Format(Constants.Card.NumberMask, Last4Digits);
+
+        public bool IsExpired => ExpiryDate < DateTime.UtcNow;
 
         // --- Audit fields ---
         public string? LastModifiedBy { get; private set; }
@@ -57,7 +61,7 @@ namespace NobleBank.Domain.Entities
                 CardNumber = plainCardNumber,
                 Last4Digits = plainCardNumber[^4..],
                 CardHolder = cardHolder.ToUpper().Trim(),
-                Type = type,
+                CardType = type,
                 Brand = brand,
                 Status = Status.Pending,
                 Balance = initialBalance,
@@ -68,6 +72,13 @@ namespace NobleBank.Domain.Entities
             };
         }
 
+        public void Activate(string performedBy)
+        {
+            Status = Status.Active;
+            UpdatedAt = DateTime.UtcNow;
+            LastModifiedBy = performedBy;
+        }
+
         public void Block(string reason, string performedBy)
         {
             Status = Status.Blocked;
@@ -75,6 +86,58 @@ namespace NobleBank.Domain.Entities
             LastModifiedBy = performedBy;
 
             AddDomainEvent(new CardBlockedEvent(Id, UserId, reason, performedBy, DateTime.UtcNow));
+        }
+
+        public Result<decimal> Deposit(decimal amount, string performedBy)
+        {
+            if (amount <= 0)
+            {
+                return Result<decimal>.Failure("Amount must be positive.");
+            }
+
+            if (Status != Status.Active)
+            {
+                return Result<decimal>.Failure("Card is not active.");
+            }
+
+            Balance += amount;
+            UpdatedAt = DateTime.UtcNow;
+            LastModifiedBy = performedBy;
+
+            return Result<decimal>.Success(Balance);
+        }
+
+        public Result<decimal> Withdraw(decimal amount, string performedBy)
+        {
+            if (amount <= 0)
+            {
+                return Result<decimal>.Failure("Amount must be positive.");
+            }
+
+            if (Status != Status.Active)
+            {
+                return Result<decimal>.Failure("Card is not active.");
+            }
+
+            if (IsExpired)
+            {
+                return Result<decimal>.Failure("Card is expired.");
+            }
+
+            var available = CardType == Type.Credit
+                ? Balance + (CreditLimit ?? 0)
+                : Balance;
+
+            if (amount > available)
+            {
+                return Result<decimal>.Failure("Insufficient funds.");
+            }
+
+            Balance -= amount;
+            UpdatedAt = DateTime.UtcNow;
+            LastModifiedBy = performedBy;
+
+            return Result<decimal>.Success(Balance);
         }
     }
 }

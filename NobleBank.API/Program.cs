@@ -1,6 +1,6 @@
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using NobleBank.API.Middleware;
 using NobleBank.Application;
 using NobleBank.Infrastructure;
 using NobleBank.Infrastructure.Settings;
@@ -36,6 +36,8 @@ namespace NobleBank.API
                         []
                     }
                 });
+
+                options.UseInlineDefinitionsForEnums();
             });
 
             builder.Services.AddApplication();
@@ -79,6 +81,7 @@ namespace NobleBank.API
                 app.UseSwaggerUI();
             }
 
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
             app.UseHttpsRedirection();
             app.UseCors("ReactApp");
             app.UseAuthentication();

@@ -12,7 +12,7 @@ namespace NobleBank.Domain.Entities
 
 		public string Currency { get; private set; } = string.Empty;
 
-		public Transactions.Type Type { get; private set; }
+		public TransactionsEnum.Type Type { get; private set; }
 
 		public string? Description { get; private set; } = string.Empty;
 
@@ -32,7 +32,7 @@ namespace NobleBank.Domain.Entities
 			Guid cardId,
 			decimal amount,
 			string currency,
-			Transactions.Type type,
+			TransactionsEnum.Type type,
 			string? description,
 			string createdBy,
 			string? receiverAccount = null,
