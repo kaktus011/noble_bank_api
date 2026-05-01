@@ -3,7 +3,7 @@ using MediatR;
 using NobleBank.Application.Common.Interfaces;
 using NobleBank.Application.Features.Cards.Queries.GetAllCards;
 using Microsoft.EntityFrameworkCore;
-using NobleBank.Domain.Entities;
+using AutoMapper.QueryableExtensions;
 
 namespace NobleBank.Application.Features.Cards.Queries.GetCardById
 {
@@ -20,11 +20,13 @@ namespace NobleBank.Application.Features.Cards.Queries.GetCardById
 
         public async Task<CardDto?> Handle(GetCardByIdQuery request, CancellationToken cancellationToken)
         {
-            Card? card = await _context.Cards
+            CardDto? card = await _context.Cards
                 .Where(c => c.Id == request.CardId && c.UserId == request.UserId)
+                .AsNoTracking()
+                .ProjectTo<CardDto>(_mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            return card is null ? null : _mapper.Map<CardDto>(card);
+            return card;
         }
     }
 }

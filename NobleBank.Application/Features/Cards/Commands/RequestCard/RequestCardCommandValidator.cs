@@ -14,6 +14,7 @@ namespace NobleBank.Application.Features.Cards.Commands.RequestCard
                 .IsInEnum().WithMessage("Invalid card brand.");
 
             RuleFor(x => x.CreditLimit)
+                .NotNull()
                 .GreaterThan(0)
                 .When(x => x.Type == CardEnum.Type.Credit)
                 .WithMessage("Credit cards must have a credit limit greater than 0.");

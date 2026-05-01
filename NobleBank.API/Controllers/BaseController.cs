@@ -6,7 +6,6 @@ namespace NobleBank.API.Controllers
 {
     [Authorize]
     [ApiController]
-    [Route("api/[controller]")]
     public abstract class BaseController : ControllerBase
     {
         protected string? UserId => User.FindFirstValue(ClaimTypes.NameIdentifier);

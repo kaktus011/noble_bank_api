@@ -72,10 +72,11 @@ namespace NobleBank.Domain.Entities
             };
         }
 
-        public void Activate()
+        public void Activate(string performedBy)
         {
             Status = Status.Active;
             UpdatedAt = DateTime.UtcNow;
+            LastModifiedBy = performedBy;
         }
 
         public void Block(string reason, string performedBy)

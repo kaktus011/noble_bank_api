@@ -25,26 +25,39 @@ namespace NobleBank.API.Middleware
             {
                 _logger.LogError(ex, "Unhandled exception while processing {Path}", context.Request.Path);
 
-                var (statusCode, title) = ex switch
+                (int statusCode, string? title) = ex switch
                 {
                     UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, "Unauthorized"),
                     NotFoundException => (StatusCodes.Status404NotFound, "Not Found"),
                     _ => (StatusCodes.Status500InternalServerError, "An error occurred")
                 };
 
+                string detail = statusCode == StatusCodes.Status500InternalServerError
+                    ? "An unexpected error occurred. Please contact support with the provided trace identifier."
+                    : ex.Message;
+
+                if (context.Response.HasStarted)
+                {
+                    _logger.LogWarning("The response has already started, the exception handling middleware will not modify the response.");
+
+                    throw;
+                }
+
                 context.Response.Clear();
                 context.Response.StatusCode = statusCode;
                 context.Response.ContentType = "application/problem+json";
 
-                var problem = new ProblemDetails
+                ProblemDetails problem = new()
                 {
                     Status = statusCode,
                     Title = title,
-                    Detail = ex.Message,
+                    Detail = detail,
                     Instance = context.Request.Path
                 };
 
-                await context.Response.WriteAsync(JsonSerializer.Serialize(problem));
+                problem.Extensions["traceId"] = context.TraceIdentifier;
+
+                await context.Response.WriteAsJsonAsync(problem, options: new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
             }
         }
     }

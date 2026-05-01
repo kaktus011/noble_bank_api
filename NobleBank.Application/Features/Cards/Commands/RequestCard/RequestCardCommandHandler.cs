@@ -47,7 +47,7 @@ namespace NobleBank.Application.Features.Cards.Commands.RequestCard
                 creditLimit: request.CreditLimit
             );
 
-            card.Activate();
+            card.Activate(request.UserId);
 
             _context.Cards.Add(card);
             await _context.SaveChangesAsync(cancellationToken);
