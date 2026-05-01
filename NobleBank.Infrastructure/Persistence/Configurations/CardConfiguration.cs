@@ -89,6 +89,10 @@ namespace NobleBank.Infrastructure.Persistence.Configurations
                 .UsePropertyAccessMode(PropertyAccessMode.Field);
 
             // --- Индекси ---
+            builder.HasIndex(c => c.CardNumber)
+                .IsUnique()
+                .HasDatabaseName("UX_Cards_CardNumber");
+
             builder.HasIndex(c => c.UserId)
                 .HasDatabaseName("IX_Cards_UserId");
 

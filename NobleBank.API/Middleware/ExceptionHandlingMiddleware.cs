@@ -1,6 +1,6 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using NobleBank.Application.Common.Exceptions;
-using System.Text.Json;
 
 namespace NobleBank.API.Middleware
 {
@@ -29,6 +29,7 @@ namespace NobleBank.API.Middleware
                 {
                     UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, "Unauthorized"),
                     NotFoundException => (StatusCodes.Status404NotFound, "Not Found"),
+                    ValidationException => (StatusCodes.Status400BadRequest, "Validation failed"),
                     _ => (StatusCodes.Status500InternalServerError, "An error occurred")
                 };
 
@@ -57,7 +58,19 @@ namespace NobleBank.API.Middleware
 
                 problem.Extensions["traceId"] = context.TraceIdentifier;
 
-                await context.Response.WriteAsJsonAsync(problem, options: new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+                if (ex is ValidationException validationException)
+                {
+                    Dictionary<string, string[]> errors = validationException.Errors
+                        .Where(error => error is not null)
+                        .GroupBy(error => error.PropertyName)
+                        .ToDictionary(
+                            group => group.Key,
+                            group => group.Select(error => error.ErrorMessage).ToArray());
+
+                    problem.Extensions["errors"] = errors;
+                }
+
+                await context.Response.WriteAsJsonAsync(problem, context.RequestAborted);
             }
         }
     }

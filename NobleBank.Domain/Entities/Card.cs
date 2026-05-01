@@ -35,7 +35,7 @@ namespace NobleBank.Domain.Entities
 
         public IReadOnlyCollection<Transaction> Transactions => _transactions.AsReadOnly();
 
-        public string MaskedNumber => $"**** **** **** {Last4Digits}";
+        public string MaskedNumber => string.Format(Constants.Card.NumberMask, Last4Digits);
 
         public bool IsExpired => ExpiryDate < DateTime.UtcNow;
 
