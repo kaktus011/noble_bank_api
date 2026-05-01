@@ -9,8 +9,6 @@ namespace NobleBank.API.Controllers
     [Route("api/[controller]")]
     public abstract class BaseController : ControllerBase
     {
-        protected string UserId
-            => User.FindFirstValue(ClaimTypes.NameIdentifier)
-               ?? throw new UnauthorizedAccessException("User ID not found in token");
+        protected string? UserId => User.FindFirstValue(ClaimTypes.NameIdentifier);
     }
 }

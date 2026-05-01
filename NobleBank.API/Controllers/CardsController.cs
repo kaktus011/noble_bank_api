@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using NobleBank.Application.Features.Cards.Commands.RequestCard;
 using NobleBank.Application.Features.Cards.Queries.GetAllCards;
 using NobleBank.Application.Features.Cards.Queries.GetCardById;
-using System.Security.Claims;
 
 namespace NobleBank.API.Controllers
 {
@@ -23,14 +22,25 @@ namespace NobleBank.API.Controllers
         [HttpGet]
         public async Task<ActionResult<List<CardDto>>> GetAll()
         {
-            var cards = await _mediator.Send(new GetAllCardsQuery(UserId));
+            if (string.IsNullOrWhiteSpace(UserId))
+            {
+                return Unauthorized();
+            }
+
+            List<CardDto> cards = await _mediator.Send(new GetAllCardsQuery(UserId));
+
             return Ok(cards);
         }
 
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<CardDto>> GetById(Guid id)
         {
-            var card = await _mediator.Send(new GetCardByIdQuery(id, UserId));
+            if (string.IsNullOrWhiteSpace(UserId))
+            {
+                return Unauthorized();
+            }
+
+            CardDto? card = await _mediator.Send(new GetCardByIdQuery(id, UserId));
 
             if (card is null)
             {
@@ -41,18 +51,17 @@ namespace NobleBank.API.Controllers
         }
 
         [HttpPost("request")]
-        public new async Task<ActionResult<CardDto>> Request([FromBody] RequestCardCommand command)
+        public async Task<ActionResult<CardDto>> RequestCard([FromBody] RequestCardCommand command)
         {
-            // UserId от клиента е null (JsonIgnore)
-            // Създаваме нов command с UserId от токена
-            var commandWithUserId = command with { UserId = GetUserId() };
+            if (string.IsNullOrWhiteSpace(UserId))
+            {
+                return Unauthorized();
+            }
 
-            var card = await _mediator.Send(commandWithUserId);
+            RequestCardCommand commandWithUserId = command with { UserId = UserId };
+            CardDto card = await _mediator.Send(commandWithUserId);
+
             return CreatedAtAction(nameof(GetById), new { id = card.Id }, card);
         }
-
-        private string GetUserId()
-            => User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? throw new UnauthorizedAccessException("User ID not found in token");
     }
 }
