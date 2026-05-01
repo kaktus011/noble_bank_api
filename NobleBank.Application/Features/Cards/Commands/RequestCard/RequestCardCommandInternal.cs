@@ -1,14 +1,15 @@
 ﻿using MediatR;
 using NobleBank.Application.Features.Cards.Queries.GetAllCards;
 using NobleBank.Domain.Common;
-using System.Text.Json.Serialization;
 
 namespace NobleBank.Application.Features.Cards.Commands.RequestCard
 {
-    public record RequestCardCommand(
-        [property: JsonIgnore]
-        string? UserId,
-
+    /// <summary>
+    /// Internal pipeline command used by the handler.
+    /// Not exposed by API contracts/Swagger.
+    /// </summary>
+    public record RequestCardCommandInternal(
+        string UserId,
         CardEnum.Type Type,
         CardEnum.Brand Brand,
         decimal? CreditLimit) : IRequest<CardDto>;

@@ -7,9 +7,6 @@ namespace NobleBank.Application.Features.Cards.Commands.RequestCard
     {
         public RequestCardCommandValidator()
         {
-            RuleFor(x => x.UserId)
-                .NotEmpty().WithMessage("User ID is required.");
-
             RuleFor(x => x.Type)
                 .IsInEnum().WithMessage("Invalid card type.");
 

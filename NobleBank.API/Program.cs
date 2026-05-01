@@ -36,6 +36,8 @@ namespace NobleBank.API
                         []
                     }
                 });
+
+                options.UseInlineDefinitionsForEnums();
             });
 
             builder.Services.AddApplication();

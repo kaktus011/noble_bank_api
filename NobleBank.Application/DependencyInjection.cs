@@ -10,14 +10,19 @@ namespace NobleBank.Application
     {
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
+            // MediatR — регистрира всички Handler-и от Application assembly
             services.AddMediatR(cfg =>
             {
                 cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
+
+                // ValidationBehaviour
                 cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
             });
 
+            // AutoMapper
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
+            // FluentValidation
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
             return services;

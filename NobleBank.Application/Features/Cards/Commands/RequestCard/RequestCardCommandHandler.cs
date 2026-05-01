@@ -20,10 +20,17 @@ namespace NobleBank.Application.Features.Cards.Commands.RequestCard
 
         public async Task<CardDto> Handle(RequestCardCommand request, CancellationToken cancellationToken)
         {
+            if (string.IsNullOrEmpty(request.UserId))
+            {
+                throw new UnauthorizedAccessException("User ID is required");
+            }
+
             var user = await _context.Users.FindAsync(new object[] { request.UserId }, cancellationToken);
 
             if (user is null)
+            {
                 throw new Exception("User not found");
+            }
 
             // Генерира картов номер (Luhn-валиден)
             var cardNumber = GenerateCardNumber(request.Brand);
@@ -48,7 +55,7 @@ namespace NobleBank.Application.Features.Cards.Commands.RequestCard
             return _mapper.Map<CardDto>(card);
         }
 
-        private string GenerateCardNumber(Enum brand)
+        private string GenerateCardNumber(CardEnum.Brand brand)
         {
             var prefix = brand switch
             {

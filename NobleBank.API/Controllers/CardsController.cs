@@ -43,12 +43,16 @@ namespace NobleBank.API.Controllers
         [HttpPost("request")]
         public new async Task<ActionResult<CardDto>> Request([FromBody] RequestCardCommand command)
         {
-            // Override UserId от токена — не доверяваме на клиента
-            var commandWithUserId = command with { UserId = UserId };
+            // UserId от клиента е null (JsonIgnore)
+            // Създаваме нов command с UserId от токена
+            var commandWithUserId = command with { UserId = GetUserId() };
 
             var card = await _mediator.Send(commandWithUserId);
-
             return CreatedAtAction(nameof(GetById), new { id = card.Id }, card);
         }
+
+        private string GetUserId()
+            => User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? throw new UnauthorizedAccessException("User ID not found in token");
     }
 }
