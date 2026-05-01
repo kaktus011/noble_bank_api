@@ -14,7 +14,7 @@ namespace NobleBank.Infrastructure.Persistence.Configurations
 
             builder.Property(c => c.CardNumber)
                 .HasColumnName("CardNumber")
-                .HasColumnType("nvarchar(500)")
+                .HasColumnType("varchar(500)")
                 .IsRequired();
 
             // --- Основни полета ---

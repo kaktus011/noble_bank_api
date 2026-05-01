@@ -44,7 +44,10 @@ namespace NobleBank.API.Controllers
 
             if (card is null)
             {
-                return NotFound(new { error = "Card not found" });
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Not Found",
+                    detail: "Card not found");
             }
 
             return Ok(card);
