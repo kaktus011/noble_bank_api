@@ -1,4 +1,10 @@
 <Solution>
+  <Folder Name="/Tests/">
+    <Project Path="NobleBank.API.Tests/NobleBank.API.Tests.csproj" Id="e45ca7c5-57ac-4c45-bd67-51b4d800dceb" />
+    <Project Path="NobleBank.Application.Tests/NobleBank.Application.Tests.csproj" Id="7e2a0c25-6d42-44a9-82fa-6c7e3c7a8138" />
+    <Project Path="NobleBank.Domain.Tests/NobleBank.Domain.Tests.csproj" Id="6fb10e38-01e3-4a24-ba1f-a8c916b804d1" />
+    <Project Path="NobleBank.Infrastructure.Tests/NobleBank.Infrastructure.Tests.csproj" Id="5a057045-15a9-4790-8b58-93ed3c073e67" />
+  </Folder>
   <Project Path="NobleBank.API/NobleBank.API.csproj" />
   <Project Path="NobleBank.Application/NobleBank.Application.csproj" />
   <Project Path="NobleBank.Domain/NobleBank.Domain.csproj" />
