@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Tests/">
+    <Project Path="NobleBank.Domain.Tests/NobleBank.Domain.Tests.csproj" Id="6fb10e38-01e3-4a24-ba1f-a8c916b804d1" />
+  </Folder>
   <Project Path="NobleBank.API/NobleBank.API.csproj" />
   <Project Path="NobleBank.Application/NobleBank.Application.csproj" />
   <Project Path="NobleBank.Domain/NobleBank.Domain.csproj" />
