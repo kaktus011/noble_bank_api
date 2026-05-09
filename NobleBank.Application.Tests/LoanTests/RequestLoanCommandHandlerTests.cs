@@ -1,3 +1,4 @@
+using NobleBank.Application.Common.Exceptions;
 using NobleBank.Application.Features.Loans.Commands.RequestLoan;
 using NobleBank.Application.Features.Loans.Queries.GetAllLoans;
 using NobleBank.Domain.Common;
@@ -35,6 +36,21 @@ namespace NobleBank.Application.Tests.LoanTests
             Assert.Equal("Active", result.Status);
             Assert.Equal("Personal", result.Type);
             Assert.Equal("John Doe", context.Users.Single(u => u.Id == "user-1").FullName);
+        }
+
+        [Fact]
+        public async Task Handle_WhenUserIsMissing_ShouldThrowNotFoundException()
+        {
+            // Arrange
+            var context = TestHelpers.CreateDbContext();
+            var handler = new RequestLoanCommandHandler(context, TestHelpers.CreateMapper());
+            var command = new RequestLoanCommand("missing-user", 10000m, 60, LoansEnum.Type.Personal);
+
+            // Act
+            var ex = await Assert.ThrowsAsync<NotFoundException>(() => handler.Handle(command, CancellationToken.None));
+
+            // Assert
+            Assert.Equal("User 'missing-user' was not found.", ex.Message);
         }
 
         [Fact]

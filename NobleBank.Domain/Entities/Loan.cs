@@ -17,6 +17,8 @@ namespace NobleBank.Domain.Entities
         public DateTime StartDate { get; private set; }
         public DateTime? EndDate { get; private set; }
 
+        public string? RejectionReason { get; private set; }
+
         public string UserId { get; private set; } = string.Empty;
         public ApplicationUser User { get; private set; } = null!;
 
@@ -33,6 +35,11 @@ namespace NobleBank.Domain.Entities
             string userId,
             string createdBy)
         {
+            if (termMonths <= 0)
+            {
+                throw new DomainException(Constants.Requirements.LoanMinTerm);
+            }
+
             decimal monthlyPayment = CalculateMonthlyPayment(amount, interestRate, termMonths);
 
             return new Loan
@@ -55,11 +62,15 @@ namespace NobleBank.Domain.Entities
             Status = LoansEnum.Status.Active;
             StartDate = DateTime.UtcNow;
             EndDate = StartDate.AddMonths(TermMonths);
+            UpdatedAt = DateTime.UtcNow;
         }
 
-        public void Reject(string reason)
+        public void Reject(string reason, string performedBy)
         {
             Status = LoansEnum.Status.Rejected;
+            RejectionReason = reason;
+            UpdatedAt = DateTime.UtcNow;
+            LastModifiedBy = performedBy;
         }
 
         public Result<decimal> MakePayment(decimal amount, string performedBy)
@@ -94,6 +105,11 @@ namespace NobleBank.Domain.Entities
 
         private static decimal CalculateMonthlyPayment(decimal principal, decimal annualRate, int months)
         {
+            if (months <= 0)
+            {
+                throw new DomainException(Constants.Requirements.LoanMinTerm);
+            }
+
             if (annualRate == 0)
             {
                 return principal / months;

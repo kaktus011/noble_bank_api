@@ -30,7 +30,7 @@ public class LoansController : BaseController
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<LoanDto>> GetById(Guid id)
     {
-        LoanDto loan = await _mediator.Send(new GetLoanByIdQuery(id, UserId));
+        LoanDto? loan = await _mediator.Send(new GetLoanByIdQuery(id, UserId));
 
         if (loan is null)
         {

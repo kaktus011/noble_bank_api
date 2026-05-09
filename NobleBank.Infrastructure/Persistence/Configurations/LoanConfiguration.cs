@@ -46,6 +46,10 @@ public class LoanConfiguration : IEntityTypeConfiguration<Loan>
             .HasColumnType("datetime2")
             .IsRequired(false);
 
+        builder.Property(l => l.RejectionReason)
+            .HasColumnType("nvarchar(500)")
+            .IsRequired(false);
+
         builder.Property(l => l.CreatedBy)
             .HasColumnType("nvarchar(450)")
             .IsRequired(false);

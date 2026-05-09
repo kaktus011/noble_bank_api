@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
+using NobleBank.Application.Common.Exceptions;
 using NobleBank.Application.Common.Interfaces;
 using NobleBank.Application.Features.Loans.Queries.GetAllLoans;
 using NobleBank.Domain.Common;
@@ -23,8 +25,15 @@ public class RequestLoanCommandHandler : IRequestHandler<RequestLoanCommand, Loa
         if (string.IsNullOrEmpty(request.UserId))
             throw new UnauthorizedAccessException("User ID is required");
 
+        ApplicationUser? user = await _context.Users.FirstOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);
+
+        if (user is null)
+        {
+            throw new NotFoundException($"User '{request.UserId}' was not found.");
+        }
+
         // Interest rates by type (simplified)
-        var interestRate = request.Type switch
+        decimal interestRate = request.Type switch
         {
             LoansEnum.Type.Personal => 8.5m,
             LoansEnum.Type.Mortgage => 3.5m,
@@ -33,7 +42,7 @@ public class RequestLoanCommandHandler : IRequestHandler<RequestLoanCommand, Loa
             _ => 7.0m
         };
 
-        var loan = Loan.Create(
+        Loan loan = Loan.Create(
             amount: request.Amount,
             interestRate: interestRate,
             termMonths: request.TermMonths,
@@ -42,8 +51,9 @@ public class RequestLoanCommandHandler : IRequestHandler<RequestLoanCommand, Loa
             createdBy: request.UserId
         );
 
-        // Auto-approve for demo purposes ONLY
-        loan.Approve();
+        // loan.Approve();
+        // Keep newly requested loans in their initial Pending state.
+        // Approval should happen through a separate explicit workflow.
 
         _context.Loans.Add(loan);
         await _context.SaveChangesAsync(cancellationToken);

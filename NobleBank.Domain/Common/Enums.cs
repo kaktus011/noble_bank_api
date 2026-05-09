@@ -4,10 +4,10 @@
     {
         public enum Brand
         {
-            Visa = 1,
-            Mastercard = 2,
-            AmericanExpress = 3,
-            Maestro = 4
+            Visa = 0,
+            Mastercard = 1,
+            AmericanExpress = 2,
+            Maestro = 3
         }
 
         public enum Type
@@ -31,18 +31,18 @@
     {
         public enum Status
         {
+            Active = 0,
             Pending = 1,
-            Active = 2,
-            Closed = 3,
-            Rejected = 4
+            Closed = 2,
+            Rejected = 3
         }
 
         public enum Type
         {
-            Personal = 1,
-            Mortgage = 2,
-            Auto = 3,
-            Student = 4
+            Personal = 0,
+            Mortgage = 1,
+            Auto = 2,
+            Student = 3
         }
     }
 

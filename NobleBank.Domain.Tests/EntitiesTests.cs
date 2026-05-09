@@ -331,6 +331,18 @@ namespace NobleBank.Domain.Tests
         }
 
         [Fact]
+        public void Loan_Create_WithZeroTermMonths_ShouldThrowDomainException()
+        {
+            // Arrange
+
+            // Act
+            var ex = Assert.Throws<DomainException>(() => Loan.Create(1000m, 5m, 0, LoansEnum.Type.Personal, "user-1", "user-1"));
+
+            // Assert
+            Assert.Equal("Loan term must be greater than zero months.", ex.Message);
+        }
+
+        [Fact]
         public void Loan_MakePayment_WithNegativeAmount_ShouldReturnFailure()
         {
             // Arrange

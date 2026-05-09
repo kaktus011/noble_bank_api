@@ -22,5 +22,7 @@ public record LoanDto
 
     public DateTime? EndDate { get; init; }
 
-    public decimal ProgressPercentage { get; init; }  // (Amount - Remaining) / Amount * 100
+    public decimal ProgressPercentage { get; init; }
+
+    public string? RejectionReason { get; init; }
 }
