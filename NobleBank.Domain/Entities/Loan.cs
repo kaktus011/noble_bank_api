@@ -35,10 +35,7 @@ namespace NobleBank.Domain.Entities
             string userId,
             string createdBy)
         {
-            if (termMonths <= 0)
-            {
-                throw new DomainException(Constants.Requirements.LoanMinTerm);
-            }
+            ValidateLoan(amount, interestRate, termMonths);
 
             decimal monthlyPayment = CalculateMonthlyPayment(amount, interestRate, termMonths);
 
@@ -91,16 +88,46 @@ namespace NobleBank.Domain.Entities
             }
 
             RemainingAmount -= amount;
+            RemainingAmount = Math.Round(RemainingAmount, 2, MidpointRounding.AwayFromZero);
             UpdatedAt = DateTime.UtcNow;
             LastModifiedBy = performedBy;
 
-            if (RemainingAmount == 0)
+            if (RemainingAmount <= 0m)
             {
+                RemainingAmount = 0m;
                 Status = LoansEnum.Status.Closed;
                 EndDate = DateTime.UtcNow;
             }
 
             return Result<decimal>.Success(RemainingAmount);
+        }
+
+        private static void ValidateLoan(decimal amount, decimal interestRate, int termMonths)
+        {
+            if (amount <= 0)
+            {
+                throw new DomainException(Constants.Requirements.LoanMinAmount);
+            }
+
+            if (amount > 100000m)
+            {
+                throw new DomainException(Constants.Requirements.LoanMaxAmount);
+            }
+
+            if (interestRate < 0)
+            {
+                throw new DomainException(Constants.Requirements.LoanInterestRate);
+            }
+
+            if (termMonths < 1)
+            {
+                throw new DomainException(Constants.Requirements.LoanMinTerm);
+            }
+
+            if (termMonths > 360)
+            {
+                throw new DomainException(Constants.Requirements.LoanMaxTerm);
+            }
         }
 
         private static decimal CalculateMonthlyPayment(decimal principal, decimal annualRate, int months)

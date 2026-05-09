@@ -18,8 +18,8 @@ namespace NobleBank.Domain.Tests
 
             // Assert
             Assert.NotEqual(Guid.Empty, entity.Id);
-            Assert.NotEqual(default, entity.CreatedAt);
-            Assert.NotEqual(default, entity.UpdatedAt);
+            Assert.Equal(default, entity.CreatedAt);
+            Assert.Equal(default, entity.UpdatedAt);
         }
 
         [Fact]
@@ -391,6 +391,25 @@ namespace NobleBank.Domain.Tests
             Assert.Equal(750m, result.Value);
             Assert.Equal(750m, loan.RemainingAmount);
             Assert.Equal("user-1", loan.LastModifiedBy);
+        }
+
+        [Fact]
+        public void Loan_MakePayment_WithTinyRemainder_ShouldRoundAndCloseLoan()
+        {
+            // Arrange
+            var loan = Loan.Create(1000m, 5m, 24, LoansEnum.Type.Personal, "user-1", "user-1");
+            loan.Approve();
+            SetPrivateProperty(loan, nameof(Loan.RemainingAmount), 0.004m);
+
+            // Act
+            var result = loan.MakePayment(0.004m, "user-1");
+
+            // Assert
+            Assert.True(result.IsSucccess);
+            Assert.Equal(0m, result.Value);
+            Assert.Equal(0m, loan.RemainingAmount);
+            Assert.Equal(LoansEnum.Status.Closed, loan.Status);
+            Assert.NotEqual(default, loan.EndDate);
         }
 
         [Fact]

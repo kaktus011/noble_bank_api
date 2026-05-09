@@ -24,6 +24,7 @@
             public const string LoanMaxAmount = "Loan amount cannot exceed 100,000.";
             public const string LoanMinTerm = "Loan term must be at least 1 month.";
             public const string LoanMaxTerm = "Loan term cannot exceed 30 years (360 months).";
+            public const string LoanInterestRate = "Loan interest rate cannot be negative.";
         }
 
         public class ErrorMessages

@@ -6,8 +6,8 @@ namespace NobleBank.Domain.Entities
     public class BaseEntity
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
-        public DateTime UpdatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
 
 
         private readonly List<INotification> _domainEvents = [];
