@@ -31,9 +31,18 @@
     {
         public enum Status
         {
-            Active = 0,
             Pending = 1,
-            Closed = 2,
+            Active = 2,
+            Closed = 3,
+            Rejected = 4
+        }
+
+        public enum Type
+        {
+            Personal = 1,
+            Mortgage = 2,
+            Auto = 3,
+            Student = 4
         }
     }
 
