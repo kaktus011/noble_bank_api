@@ -19,10 +19,17 @@
             public const string FirstNameRequired = "First name is required.";
             public const string LastNameRequired = "Last name is required.";
             public const string PasswordRequired = "Password is required.";
+            
+            public const string LoanMinAmount = "Loan amount must be greater than 0.";
+            public const string LoanMaxAmount = "Loan amount cannot exceed 100,000.";
+            public const string LoanMinTerm = "Loan term must be at least 1 month.";
+            public const string LoanMaxTerm = "Loan term cannot exceed 30 years (360 months).";
+            public const string LoanInterestRate = "Loan interest rate cannot be negative.";
         }
 
         public class ErrorMessages
         {
+            public const string LoanTypeInvalid = "Invalid loan type.";
             public const string InvalidEmailFormat = "Invalid email format.";
         }
     }

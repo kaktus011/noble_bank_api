@@ -23,15 +23,56 @@ namespace NobleBank.Infrastructure.Persistence.Configurations
                 .HasColumnType("decimal(5,2)")
                 .IsRequired();
 
+            builder.Property(l => l.MonthlyPayment)
+                .HasColumnType("decimal(18,2)")
+                .IsRequired();
+
+            builder.Property(l => l.TermMonths)
+                .IsRequired();
+
             builder.Property(l => l.Status)
                 .HasConversion<int>()
                 .IsRequired();
 
+            builder.Property(l => l.Type)
+                .HasConversion<int>()
+                .IsRequired();
+
+            builder.Property(l => l.StartDate)
+                .HasColumnType("datetime2")
+                .IsRequired();
+
+            builder.Property(l => l.EndDate)
+                .HasColumnType("datetime2")
+                .IsRequired(false);
+
+            builder.Property(l => l.RejectionReason)
+                .HasColumnType("nvarchar(500)")
+                .IsRequired(false);
+
+            builder.Property(l => l.CreatedBy)
+                .HasColumnType("nvarchar(450)")
+                .IsRequired(false);
+
+            builder.Property(l => l.LastModifiedBy)
+                .HasColumnType("nvarchar(450)")
+                .IsRequired(false);
+
+            builder.Property(l => l.CreatedAt)
+                .HasColumnType("datetime2")
+                .IsRequired();
+
+            builder.Property(l => l.UpdatedAt)
+                .HasColumnType("datetime2")
+                .IsRequired();
+
+            // relation with User
             builder.HasOne(l => l.User)
                 .WithMany(u => u.Loans)
                 .HasForeignKey(l => l.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // index
             builder.HasIndex(l => l.UserId)
                 .HasDatabaseName("IX_Loans_UserId");
         }

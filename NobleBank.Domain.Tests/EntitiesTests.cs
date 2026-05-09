@@ -18,7 +18,7 @@ namespace NobleBank.Domain.Tests
 
             // Assert
             Assert.NotEqual(Guid.Empty, entity.Id);
-            Assert.True(entity.CreatedAt <= DateTime.Now);
+            Assert.Equal(default, entity.CreatedAt);
             Assert.Equal(default, entity.UpdatedAt);
         }
 
@@ -315,55 +315,101 @@ namespace NobleBank.Domain.Tests
         {
             // Arrange
             // Act
-            var loan = Loan.Create("Car loan", 10000m, 5.5m, "user-1", "user-1");
+            var loan = Loan.Create(10000m, 5.5m, 60, LoansEnum.Type.Personal, "user-1", "user-1");
 
             // Assert
-            Assert.Equal("Car loan", loan.Name);
             Assert.Equal(10000m, loan.Amount);
             Assert.Equal(10000m, loan.RemainingAmount);
             Assert.Equal(5.5m, loan.InterestRate);
-            Assert.Equal(LoansEnum.Status.Active, loan.Status);
+            Assert.Equal(60, loan.TermMonths);
+            Assert.True(loan.MonthlyPayment > 0);
+            Assert.Equal(LoansEnum.Type.Personal, loan.Type);
+            Assert.Equal(LoansEnum.Status.Pending, loan.Status);
+            Assert.NotEqual(default, loan.StartDate);
             Assert.Equal("user-1", loan.UserId);
             Assert.Equal("user-1", loan.CreatedBy);
         }
 
         [Fact]
-        public void Loan_ApplyPayment_WithNegativeAmount_ShouldThrow()
+        public void Loan_Create_WithZeroTermMonths_ShouldThrowDomainException()
         {
             // Arrange
-            var loan = Loan.Create("Car loan", 1000m, 5m, "user-1", "user-1");
 
             // Act
-            var ex = Assert.Throws<ArgumentOutOfRangeException>(() => loan.ApplyPayment(-1m));
+            var ex = Assert.Throws<DomainException>(() => Loan.Create(1000m, 5m, 0, LoansEnum.Type.Personal, "user-1", "user-1"));
 
             // Assert
-            Assert.Equal("paymentAmount", ex.ParamName);
+            Assert.Equal(Constants.Requirements.LoanMinTerm, ex.Message);
         }
 
         [Fact]
-        public void Loan_ApplyPayment_AboveRemainingAmount_ShouldThrow()
+        public void Loan_MakePayment_WithNegativeAmount_ShouldReturnFailure()
         {
             // Arrange
-            var loan = Loan.Create("Car loan", 1000m, 5m, "user-1", "user-1");
+            var loan = Loan.Create(1000m, 5m, 24, LoansEnum.Type.Personal, "user-1", "user-1");
+            loan.Approve();
 
             // Act
-            var ex = Assert.Throws<InvalidOperationException>(() => loan.ApplyPayment(1001m));
+            var result = loan.MakePayment(-1m, "user-1");
 
             // Assert
-            Assert.Equal("Payment amount cannot exceed the remaining loan amount.", ex.Message);
+            Assert.True(result.IsFail);
+            Assert.Equal("Payment amount must be positive.", result.Error);
+            Assert.Equal(1000m, loan.RemainingAmount);
         }
 
         [Fact]
-        public void Loan_ApplyPayment_ShouldReduceRemainingAmount()
+        public void Loan_MakePayment_AboveRemainingAmount_ShouldReduceToRemainingAndCloseLoan()
         {
             // Arrange
-            var loan = Loan.Create("Car loan", 1000m, 5m, "user-1", "user-1");
+            var loan = Loan.Create(1000m, 5m, 24, LoansEnum.Type.Personal, "user-1", "user-1");
+            loan.Approve();
 
             // Act
-            loan.ApplyPayment(250m);
+            var result = loan.MakePayment(1001m, "user-1");
 
             // Assert
+            Assert.True(result.IsSucccess);
+            Assert.Equal(0m, result.Value);
+            Assert.Equal(0m, loan.RemainingAmount);
+            Assert.Equal(LoansEnum.Status.Closed, loan.Status);
+            Assert.NotEqual(default, loan.EndDate);
+        }
+
+        [Fact]
+        public void Loan_MakePayment_ShouldReduceRemainingAmount()
+        {
+            // Arrange
+            var loan = Loan.Create(1000m, 5m, 24, LoansEnum.Type.Personal, "user-1", "user-1");
+            loan.Approve();
+
+            // Act
+            var result = loan.MakePayment(250m, "user-1");
+
+            // Assert
+            Assert.True(result.IsSucccess);
+            Assert.Equal(750m, result.Value);
             Assert.Equal(750m, loan.RemainingAmount);
+            Assert.Equal("user-1", loan.LastModifiedBy);
+        }
+
+        [Fact]
+        public void Loan_MakePayment_WithTinyRemainder_ShouldRoundAndCloseLoan()
+        {
+            // Arrange
+            var loan = Loan.Create(1000m, 5m, 24, LoansEnum.Type.Personal, "user-1", "user-1");
+            loan.Approve();
+            SetPrivateProperty(loan, nameof(Loan.RemainingAmount), 0.004m);
+
+            // Act
+            var result = loan.MakePayment(0.004m, "user-1");
+
+            // Assert
+            Assert.True(result.IsSucccess);
+            Assert.Equal(0m, result.Value);
+            Assert.Equal(0m, loan.RemainingAmount);
+            Assert.Equal(LoansEnum.Status.Closed, loan.Status);
+            Assert.NotEqual(default, loan.EndDate);
         }
 
         [Fact]

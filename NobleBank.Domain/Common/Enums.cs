@@ -34,6 +34,15 @@
             Active = 0,
             Pending = 1,
             Closed = 2,
+            Rejected = 3
+        }
+
+        public enum Type
+        {
+            Personal = 0,
+            Mortgage = 1,
+            Auto = 2,
+            Student = 3
         }
     }
 
