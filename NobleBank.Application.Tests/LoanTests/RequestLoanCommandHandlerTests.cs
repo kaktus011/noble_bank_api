@@ -33,7 +33,7 @@ namespace NobleBank.Application.Tests.LoanTests
             Assert.Equal(10000m, result.Amount);
             Assert.Equal(10000m, result.RemainingAmount);
             Assert.Equal(0m, result.ProgressPercentage);
-            Assert.Equal("Active", result.Status);
+            Assert.Equal("Pending", result.Status);
             Assert.Equal("Personal", result.Type);
             Assert.Equal("John Doe", context.Users.Single(u => u.Id == "user-1").FullName);
         }

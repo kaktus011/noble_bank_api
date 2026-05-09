@@ -22,6 +22,11 @@ public class LoansController : BaseController
     [HttpGet]
     public async Task<ActionResult<List<LoanDto>>> GetAll()
     {
+        if (string.IsNullOrWhiteSpace(UserId))
+        {
+            return Unauthorized();
+        }
+
         List<LoanDto> loans = await _mediator.Send(new GetAllLoansQuery(UserId));
 
         return Ok(loans);
@@ -30,6 +35,11 @@ public class LoansController : BaseController
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<LoanDto>> GetById(Guid id)
     {
+        if (string.IsNullOrWhiteSpace(UserId))
+        {
+            return Unauthorized();
+        }
+
         LoanDto? loan = await _mediator.Send(new GetLoanByIdQuery(id, UserId));
 
         if (loan is null)
@@ -43,6 +53,11 @@ public class LoansController : BaseController
     [HttpPost("request")]
     public async Task<ActionResult<LoanDto>> RequestLoan([FromBody] RequestLoanCommand command)
     {
+        if (string.IsNullOrWhiteSpace(UserId))
+        {
+            return Unauthorized();
+        }
+
         RequestLoanCommand commandWithUserId = command with { UserId = UserId };
 
         LoanDto loan = await _mediator.Send(commandWithUserId);

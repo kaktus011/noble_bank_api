@@ -18,8 +18,8 @@ namespace NobleBank.Domain.Tests
 
             // Assert
             Assert.NotEqual(Guid.Empty, entity.Id);
-            Assert.True(entity.CreatedAt <= DateTime.Now);
-            Assert.Equal(default, entity.UpdatedAt);
+            Assert.NotEqual(default, entity.CreatedAt);
+            Assert.NotEqual(default, entity.UpdatedAt);
         }
 
         [Fact]
@@ -339,7 +339,7 @@ namespace NobleBank.Domain.Tests
             var ex = Assert.Throws<DomainException>(() => Loan.Create(1000m, 5m, 0, LoansEnum.Type.Personal, "user-1", "user-1"));
 
             // Assert
-            Assert.Equal("Loan term must be greater than zero months.", ex.Message);
+            Assert.Equal(Constants.Requirements.LoanMinTerm, ex.Message);
         }
 
         [Fact]

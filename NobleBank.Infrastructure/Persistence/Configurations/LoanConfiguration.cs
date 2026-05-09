@@ -46,13 +46,13 @@ namespace NobleBank.Infrastructure.Persistence.Configurations
                 .HasColumnType("datetime2")
                 .IsRequired(false);
 
-        builder.Property(l => l.RejectionReason)
-            .HasColumnType("nvarchar(500)")
-            .IsRequired(false);
+            builder.Property(l => l.RejectionReason)
+                .HasColumnType("nvarchar(500)")
+                .IsRequired(false);
 
-        builder.Property(l => l.CreatedBy)
-            .HasColumnType("nvarchar(450)")
-            .IsRequired(false);
+            builder.Property(l => l.CreatedBy)
+                .HasColumnType("nvarchar(450)")
+                .IsRequired(false);
 
             builder.Property(l => l.LastModifiedBy)
                 .HasColumnType("nvarchar(450)")
@@ -64,7 +64,7 @@ namespace NobleBank.Infrastructure.Persistence.Configurations
 
             builder.Property(l => l.UpdatedAt)
                 .HasColumnType("datetime2")
-                .IsRequired(false);
+                .IsRequired();
 
             // relation with User
             builder.HasOne(l => l.User)

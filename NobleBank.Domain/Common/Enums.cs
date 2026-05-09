@@ -4,10 +4,10 @@
     {
         public enum Brand
         {
-            Visa = 0,
-            Mastercard = 1,
-            AmericanExpress = 2,
-            Maestro = 3
+            Visa = 1,
+            Mastercard = 2,
+            AmericanExpress = 3,
+            Maestro = 4
         }
 
         public enum Type
