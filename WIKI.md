@@ -67,7 +67,7 @@ These provide unit-level and behavior-oriented coverage across layers.
 
 ## API Functionality (Current State)
 
-## Authentication
+### Authentication
 Controller: `api/auth`
 - `POST /api/auth/register`
   - Registers a user via ASP.NET Core Identity.
@@ -80,7 +80,7 @@ Validation highlights:
 - Email must be valid.
 - Password rules require length, uppercase letter, number, and special character.
 
-## Cards
+### Cards
 Controller: `api/cards` (authorized)
 - `GET /api/cards`
   - Returns cards for the authenticated user.
@@ -95,7 +95,7 @@ Business highlights:
 - Type/brand are validated; credit cards require positive credit limit.
 - Card number is encrypted at EF Core persistence layer.
 
-## Loans
+### Loans
 Controller: `api/loans` (authorized)
 - `GET /api/loans`
   - Returns loans for the authenticated user.
