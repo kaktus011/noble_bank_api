@@ -1,4 +1,3 @@
-using FluentValidation;
 using NobleBank.Application.Features.Cards.Commands.RequestCard;
 using NobleBank.Domain.Common;
 

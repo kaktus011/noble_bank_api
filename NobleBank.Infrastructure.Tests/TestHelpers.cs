@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using NobleBank.Domain.Entities;
 using NobleBank.Domain.Interfaces;
 using NobleBank.Infrastructure.Identity;
 using NobleBank.Infrastructure.Persistence;

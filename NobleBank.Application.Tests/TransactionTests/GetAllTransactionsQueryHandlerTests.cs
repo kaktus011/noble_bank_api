@@ -1,7 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using NobleBank.Application.Features.Transactions.Queries.GetAllTransactions;
 using NobleBank.Domain.Common;
-using NobleBank.Domain.Entities;
 
 namespace NobleBank.Application.Tests.TransactionTests
 {

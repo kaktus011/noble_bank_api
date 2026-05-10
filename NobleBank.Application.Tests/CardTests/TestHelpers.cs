@@ -4,7 +4,6 @@ using NobleBank.Application.Common.Interfaces;
 using NobleBank.Application.Features.Cards;
 using NobleBank.Domain.Common;
 using NobleBank.Domain.Entities;
-using NobleBank.Domain.Interfaces;
 
 namespace NobleBank.Application.Tests.CardTests
 {

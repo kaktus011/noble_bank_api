@@ -1,13 +1,6 @@
 using MediatR;
-using NobleBank.Application.Features.Auth;
-using NobleBank.Application.Features.Auth.Commands.Login;
-using NobleBank.Application.Features.Auth.Commands.Register;
-using NobleBank.Application.Features.Cards.Commands.RequestCard;
 using NobleBank.Application.Features.Cards.Queries.GetAllCards;
-using NobleBank.Application.Features.Cards.Queries.GetCardById;
 using NobleBank.Domain.Common;
-using NobleBank.Domain.Entities;
-using NobleBank.API.Controllers;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;

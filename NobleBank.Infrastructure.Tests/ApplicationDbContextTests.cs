@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using NobleBank.Domain.Common;
 using NobleBank.Domain.Entities;
-using NobleBank.Infrastructure.Persistence;
 
 namespace NobleBank.Infrastructure.Tests
 {

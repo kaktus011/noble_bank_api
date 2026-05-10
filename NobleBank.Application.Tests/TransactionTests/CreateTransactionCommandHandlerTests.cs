@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using NobleBank.Application.Common.Exceptions;
 using NobleBank.Application.Features.Transactions.Commands.CreateTransaction;
-using NobleBank.Application.Features.Transactions.Queries.GetAllTransactions;
 using NobleBank.Domain.Common;
 using NobleBank.Domain.Entities;
 

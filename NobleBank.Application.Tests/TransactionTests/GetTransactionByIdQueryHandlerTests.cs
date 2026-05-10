@@ -1,4 +1,3 @@
-using NobleBank.Application.Features.Transactions.Queries.GetAllTransactions;
 using NobleBank.Application.Features.Transactions.Queries.GetTransactionById;
 using NobleBank.Domain.Common;
 

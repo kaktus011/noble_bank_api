@@ -1,4 +1,3 @@
-using NobleBank.Application.Features.Transactions;
 using NobleBank.Application.Features.Transactions.Queries.GetAllTransactions;
 using NobleBank.Domain.Common;
 using NobleBank.Domain.Entities;
