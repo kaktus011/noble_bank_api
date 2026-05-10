@@ -16,6 +16,6 @@ public class RequestLoanCommandValidator : AbstractValidator<RequestLoanCommand>
             .LessThanOrEqualTo(360).WithMessage(Constants.Requirements.LoanMaxTerm);
 
         RuleFor(x => x.Type)
-            .IsInEnum().WithMessage(Constants.ErrorMessages.LoanTypeInvalid);
+            .IsInEnum().WithMessage(Constants.Exceptions.LoanTypeInvalid);
     }
 }

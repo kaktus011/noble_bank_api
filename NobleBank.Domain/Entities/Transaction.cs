@@ -1,55 +1,43 @@
 ﻿using NobleBank.Domain.Common;
 
-namespace NobleBank.Domain.Entities
+namespace NobleBank.Domain.Entities;
+
+public class Transaction
 {
-	public class Transaction : BaseEntity
-	{
-		public Guid CardId { get; private set; }
+    public Guid Id { get; private init; } = Guid.NewGuid();
 
-		public Card Card { get; private set; } = null!;
+    public decimal Amount { get; private set; }
 
-		public decimal Amount { get; private set; }
+    public string Description { get; private set; } = string.Empty;
 
-		public string Currency { get; private set; } = string.Empty;
+    public TransactionsEnum.Type Type { get; private set; }
 
-		public TransactionsEnum.Type Type { get; private set; }
+    public DateTime OccurredAt { get; private set; }
 
-		public string? Description { get; private set; } = string.Empty;
+    // Foreign Keys
+    public Guid CardId { get; private set; }
 
-		public string? ReceiverAccount { get; private set; }
+    public Card Card { get; private set; } = null!;
 
-		public string? SenderAccount { get; private set; }
+    public string? PerformedBy { get; private set; }
 
-		public string? LastModifiedBy { get; private set; }
+    private Transaction() { }
 
-		public string? CreatedBy { get; private set; }
-
-        public DateTime OccurredAt { get; private set; }
-
-        private Transaction() { }
-
-		public static Transaction Create(
-			Guid cardId,
-			decimal amount,
-			string currency,
-			TransactionsEnum.Type type,
-			string? description,
-			string createdBy,
-			string? receiverAccount = null,
-			string? senderAccount = null)
-		{
-			return new Transaction
-			{
-				CardId = cardId,
-				Amount = amount,
-				Currency = currency,
-				Type = type,
-				Description = description,
-				CreatedBy = createdBy,
-				OccurredAt = DateTime.UtcNow,
-                ReceiverAccount = receiverAccount,
-				SenderAccount = senderAccount
-			};
-		}
-	}
+    public static Transaction Create(
+        decimal amount,
+        string description,
+        TransactionsEnum.Type type,
+        Guid cardId,
+        string performedBy)
+    {
+        return new Transaction
+        {
+            Amount = amount,
+            Description = description,
+            Type = type,
+            CardId = cardId,
+            OccurredAt = DateTime.UtcNow,
+            PerformedBy = performedBy
+        };
+    }
 }

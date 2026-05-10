@@ -417,27 +417,22 @@ namespace NobleBank.Domain.Tests
         {
             // Arrange
             var cardId = Guid.NewGuid();
+            var performedBy = "user-1";
 
             // Act
             var transaction = Transaction.Create(
-                cardId: cardId,
                 amount: 150m,
-                currency: "EUR",
-                type: TransactionsEnum.Type.Income,
                 description: "Salary",
-                createdBy: "user-1",
-                receiverAccount: "receiver",
-                senderAccount: "sender");
+                type: TransactionsEnum.Type.Income,
+                cardId: cardId,
+                performedBy: performedBy);
 
             // Assert
             Assert.Equal(cardId, transaction.CardId);
             Assert.Equal(150m, transaction.Amount);
-            Assert.Equal("EUR", transaction.Currency);
             Assert.Equal(TransactionsEnum.Type.Income, transaction.Type);
             Assert.Equal("Salary", transaction.Description);
-            Assert.Equal("user-1", transaction.CreatedBy);
-            Assert.Equal("receiver", transaction.ReceiverAccount);
-            Assert.Equal("sender", transaction.SenderAccount);
+            Assert.Equal(performedBy, transaction.PerformedBy);
             Assert.NotEqual(default, transaction.OccurredAt);
         }
 

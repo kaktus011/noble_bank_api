@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using NobleBank.Application.Common.Interfaces;
 using NobleBank.Domain.Entities;
 using NobleBank.Domain.Interfaces;
@@ -44,18 +45,15 @@ namespace NobleBank.Infrastructure.Persistence
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            DateTime utcNow = DateTime.UtcNow;
-
-            foreach (var entry in ChangeTracker.Entries<BaseEntity>())
+            foreach (EntityEntry<BaseEntity> entry in ChangeTracker.Entries<BaseEntity>())
             {
                 if (entry.State == EntityState.Added)
                 {
-                    entry.Entity.CreatedAt = utcNow;
-                    entry.Entity.UpdatedAt = utcNow;
+                    entry.Entity.CreatedAt = DateTime.UtcNow;
                 }
                 else if (entry.State == EntityState.Modified)
                 {
-                    entry.Entity.UpdatedAt = utcNow;
+                    entry.Entity.UpdatedAt = DateTime.UtcNow;
                 }
             }
 
@@ -68,17 +66,19 @@ namespace NobleBank.Infrastructure.Persistence
 
         private async Task DispatchDomainEventsAsync()
         {
-            var entities = ChangeTracker
+            List<BaseEntity> entities = ChangeTracker
                 .Entries<BaseEntity>()
                 .Where(e => e.Entity.DomainEvents.Any())
                 .Select(e => e.Entity)
                 .ToList();
 
-            var events = entities.SelectMany(e => e.DomainEvents).ToList();
+            List<INotification> events = entities.SelectMany(e => e.DomainEvents).ToList();
             entities.ForEach(e => e.ClearDomainEvents());
 
             foreach (var @event in events)
+            {
                 await _mediator.Publish(@event);
+            }
         }
     }
 }
