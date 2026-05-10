@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using NobleBank.Application.Common.Exceptions;
+using NobleBank.Domain.Common;
 
 namespace NobleBank.API.Middleware
 {
@@ -29,6 +30,7 @@ namespace NobleBank.API.Middleware
                 {
                     UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, "Unauthorized"),
                     NotFoundException => (StatusCodes.Status404NotFound, "Not Found"),
+                    DomainException => (StatusCodes.Status400BadRequest, "Business Rule Violation"),
                     ValidationException => (StatusCodes.Status400BadRequest, "Validation failed"),
                     _ => (StatusCodes.Status500InternalServerError, "An error occurred")
                 };

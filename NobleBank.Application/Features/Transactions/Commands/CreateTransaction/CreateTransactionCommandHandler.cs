@@ -2,6 +2,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using NobleBank.Application.Common.Interfaces;
+using NobleBank.Application.Common.Exceptions;
 using NobleBank.Application.Features.Transactions.Queries.GetAllTransactions;
 using NobleBank.Domain.Common;
 using NobleBank.Domain.Entities;
@@ -35,20 +36,20 @@ public class CreateTransactionCommandHandler
 
         if (card is null)
         {
-            throw new Exception("Card not found or does not belong to user");
+            throw new NotFoundException("Card not found or does not belong to user");
         }
 
-        // Приложи транзакцията към картата
+        // Apply transaction to card
         var result = request.Type switch
         {
             TransactionsEnum.Type.Income => card.Deposit(request.Amount, request.UserId),
             TransactionsEnum.Type.Expense => card.Withdraw(request.Amount, request.UserId),
-            _ => throw new NotSupportedException("Transfer type not yet implemented")
+            _ => throw new DomainException("Transfer type not yet implemented")
         };
 
         if (result.IsFail)
         {
-            throw new Exception(result.Error);
+            throw new DomainException(result.Error);
         }
 
         // Transaction record
