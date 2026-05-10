@@ -14,6 +14,16 @@ namespace NobleBank.Infrastructure.Tests
             var encryption = TestHelpers.CreateEncryptionService();
             await using var context = TestHelpers.CreateDbContext(encryption);
 
+            // Add user first to satisfy foreign key constraint
+            context.Users.Add(new ApplicationUser
+            {
+                Id = "user-1",
+                FirstName = "John",
+                LastName = "Doe",
+                Email = "john.doe@example.com"
+            });
+            await context.SaveChangesAsync(CancellationToken.None);
+
             var card = Card.Create(
                 cardHolder: "John Doe",
                 plainCardNumber: "4242424242424242",
