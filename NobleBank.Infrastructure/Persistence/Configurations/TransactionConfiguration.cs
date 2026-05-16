@@ -2,46 +2,47 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using NobleBank.Domain.Entities;
 
-namespace NobleBank.Infrastructure.Persistence.Configurations;
-
-public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
+namespace NobleBank.Infrastructure.Persistence.Configurations
 {
-    public void Configure(EntityTypeBuilder<Transaction> builder)
+    public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
     {
-        builder.ToTable("Transactions");
-        builder.HasKey(t => t.Id);
+        public void Configure(EntityTypeBuilder<Transaction> builder)
+        {
+            builder.ToTable("Transactions");
+            builder.HasKey(t => t.Id);
 
-        builder.Property(t => t.Amount)
-            .HasColumnType("decimal(18,2)")
-            .IsRequired();
+            builder.Property(t => t.Amount)
+                .HasColumnType("decimal(18,2)")
+                .IsRequired();
 
-        builder.Property(t => t.Description)
-            .HasColumnType("nvarchar(250)")
-            .IsRequired();
+            builder.Property(t => t.Description)
+                .HasColumnType("nvarchar(250)")
+                .IsRequired();
 
-        builder.Property(t => t.Type)
-            .HasConversion<int>()
-            .IsRequired();
+            builder.Property(t => t.Type)
+                .HasConversion<int>()
+                .IsRequired();
 
-        builder.Property(t => t.OccurredAt)
-            .HasColumnType("datetime2")
-            .IsRequired();
+            builder.Property(t => t.OccurredAt)
+                .HasColumnType("datetime2")
+                .IsRequired();
 
-        builder.Property(t => t.PerformedBy)
-            .HasColumnType("nvarchar(450)")
-            .IsRequired(false);
+            builder.Property(t => t.PerformedBy)
+                .HasColumnType("nvarchar(450)")
+                .IsRequired(false);
 
-        // Relations with Card
-        builder.HasOne(t => t.Card)
-            .WithMany(c => c.Transactions)
-            .HasForeignKey(t => t.CardId)
-            .OnDelete(DeleteBehavior.Cascade);
+            // Relations with Card
+            builder.HasOne(t => t.Card)
+                .WithMany(c => c.Transactions)
+                .HasForeignKey(t => t.CardId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-        // Indexing
-        builder.HasIndex(t => t.CardId)
-            .HasDatabaseName("IX_Transactions_CardId");
+            // Indexing
+            builder.HasIndex(t => t.CardId)
+                .HasDatabaseName("IX_Transactions_CardId");
 
-        builder.HasIndex(t => t.OccurredAt)
-            .HasDatabaseName("IX_Transactions_OccurredAt");
+            builder.HasIndex(t => t.OccurredAt)
+                .HasDatabaseName("IX_Transactions_OccurredAt");
+        }
     }
 }

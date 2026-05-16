@@ -24,7 +24,6 @@ namespace NobleBank.Application.Features.Transactions.Queries.GetAllTransactions
             CancellationToken cancellationToken)
         {
             IQueryable<Transaction> query = _context.Transactions
-                .Include(t => t.Card)
                 .Where(t => t.Card.UserId == request.UserId);
 
             if (request.CardId.HasValue)
@@ -32,9 +31,11 @@ namespace NobleBank.Application.Features.Transactions.Queries.GetAllTransactions
                 query = query.Where(t => t.CardId == request.CardId.Value);
             }
 
+            int limit = Math.Clamp(request.Limit ?? 50, 1, 50);
+
             return await query
                 .OrderByDescending(t => t.OccurredAt)
-                .Take(request.Limit ?? 50)
+                .Take(limit)
                 .ProjectTo<TransactionDto>(_mapper.ConfigurationProvider)
                 .ToListAsync(cancellationToken);
         }

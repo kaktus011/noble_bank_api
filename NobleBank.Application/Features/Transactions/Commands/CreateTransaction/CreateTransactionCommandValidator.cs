@@ -17,7 +17,7 @@ namespace NobleBank.Application.Features.Transactions.Commands.CreateTransaction
                 .NotEmpty().WithMessage(Constants.Requirements.TransactionDescriptionRequired)
                 .MaximumLength(250).WithMessage(Constants.Requirements.TransactionDescriptionMaxLength);
             RuleFor(x => x.Type)
-                .IsInEnum().WithMessage(Constants.Exceptions.IvalidTransactionType);
+                .IsInEnum().WithMessage(Constants.Exceptions.InvalidTransactionType);
         }
     }
 }

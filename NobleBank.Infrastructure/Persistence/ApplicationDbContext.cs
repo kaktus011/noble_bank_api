@@ -45,17 +45,19 @@ namespace NobleBank.Infrastructure.Persistence
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            var entries = ChangeTracker.Entries<BaseEntity>().ToList();
+            List<EntityEntry<BaseEntity>> entries = ChangeTracker.Entries<BaseEntity>().ToList();
+            DateTime utcNow = DateTime.UtcNow;
+
             foreach (EntityEntry<BaseEntity> entry in entries)
             {
                 if (entry.State == EntityState.Added)
                 {
-                    entry.Entity.CreatedAt = DateTime.UtcNow;
-                    entry.Entity.UpdatedAt = DateTime.UtcNow;
+                    entry.Entity.CreatedAt = utcNow;
+                    entry.Entity.UpdatedAt = utcNow;
                 }
-                else if (entry.State == EntityState.Modified)
+                else if (entry.State == EntityState.Modified)   
                 {
-                    entry.Entity.UpdatedAt = DateTime.UtcNow;
+                    entry.Entity.UpdatedAt = utcNow;
                 }
             }
 

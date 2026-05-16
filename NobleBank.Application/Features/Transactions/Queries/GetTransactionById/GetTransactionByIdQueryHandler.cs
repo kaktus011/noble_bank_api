@@ -24,7 +24,6 @@ namespace NobleBank.Application.Features.Transactions.Queries.GetTransactionById
             CancellationToken cancellationToken)
         {
             return await _context.Transactions
-                .Include(t => t.Card)
                 .Where(t => t.Id == request.TransactionId && t.Card.UserId == request.UserId)
                 .ProjectTo<TransactionDto>(_mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync(cancellationToken);

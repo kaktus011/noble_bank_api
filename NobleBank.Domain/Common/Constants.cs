@@ -36,7 +36,7 @@
         {
             public const string LoanTypeInvalid = "Invalid loan type.";
             public const string InvalidEmailFormat = "Invalid email format.";
-            public const string IvalidTransactionType = "Invalid transaction type.";
+            public const string InvalidTransactionType = "Invalid transaction type.";
         }
     }
 }
