@@ -19,7 +19,7 @@ public class Transaction
 
     public Card Card { get; private set; } = null!;
 
-    public string PerformedBy { get; private set; }
+    public string PerformedBy { get; private set; } = string.Empty;
 
     private Transaction() { }
 
