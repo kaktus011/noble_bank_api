@@ -19,7 +19,7 @@ namespace NobleBank.Application.Tests.TransactionTests
 
             var transaction1 = TestHelpers.CreateTransaction(
                 Guid.NewGuid(),
-                card.Id,
+                card,
                 100m,
                 "Transaction 1",
                 TransactionsEnum.Type.Expense,
@@ -27,7 +27,7 @@ namespace NobleBank.Application.Tests.TransactionTests
 
             var transaction2 = TestHelpers.CreateTransaction(
                 Guid.NewGuid(),
-                card.Id,
+                card,
                 200m,
                 "Transaction 2",
                 TransactionsEnum.Type.Income,
@@ -65,7 +65,7 @@ namespace NobleBank.Application.Tests.TransactionTests
 
             var transaction1 = TestHelpers.CreateTransaction(
                 Guid.NewGuid(),
-                card1.Id,
+                card1,
                 100m,
                 "Transaction 1",
                 TransactionsEnum.Type.Expense,
@@ -73,7 +73,7 @@ namespace NobleBank.Application.Tests.TransactionTests
 
             var transaction2 = TestHelpers.CreateTransaction(
                 Guid.NewGuid(),
-                card2.Id,
+                card2,
                 200m,
                 "Transaction 2",
                 TransactionsEnum.Type.Income,
@@ -112,7 +112,7 @@ namespace NobleBank.Application.Tests.TransactionTests
             {
                 var transaction = TestHelpers.CreateTransaction(
                     Guid.NewGuid(),
-                    card.Id,
+                    card,
                     100m * (i + 1),
                     $"Transaction {i + 1}",
                     TransactionsEnum.Type.Expense,
@@ -148,7 +148,7 @@ namespace NobleBank.Application.Tests.TransactionTests
 
             var transaction1 = TestHelpers.CreateTransaction(
                 Guid.NewGuid(),
-                card1.Id,
+                card1,
                 100m,
                 "Transaction 1",
                 TransactionsEnum.Type.Expense,
@@ -156,7 +156,7 @@ namespace NobleBank.Application.Tests.TransactionTests
 
             var transaction2 = TestHelpers.CreateTransaction(
                 Guid.NewGuid(),
-                card2.Id,
+                card2,
                 200m,
                 "Transaction 2",
                 TransactionsEnum.Type.Income,
@@ -195,7 +195,7 @@ namespace NobleBank.Application.Tests.TransactionTests
 
             var transaction1 = TestHelpers.CreateTransaction(
                 Guid.NewGuid(),
-                card1.Id,
+                card1,
                 100m,
                 "Transaction 1",
                 TransactionsEnum.Type.Expense,
@@ -203,7 +203,7 @@ namespace NobleBank.Application.Tests.TransactionTests
 
             var transaction2 = TestHelpers.CreateTransaction(
                 Guid.NewGuid(),
-                card2.Id,
+                card2,
                 200m,
                 "Transaction 2",
                 TransactionsEnum.Type.Income,
@@ -263,7 +263,7 @@ namespace NobleBank.Application.Tests.TransactionTests
             var now = DateTime.UtcNow;
             var transaction1 = TestHelpers.CreateTransaction(
                 Guid.NewGuid(),
-                card.Id,
+                card,
                 100m,
                 "Transaction 1",
                 TransactionsEnum.Type.Expense,
@@ -271,7 +271,7 @@ namespace NobleBank.Application.Tests.TransactionTests
 
             var transaction2 = TestHelpers.CreateTransaction(
                 Guid.NewGuid(),
-                card.Id,
+                card,
                 200m,
                 "Transaction 2",
                 TransactionsEnum.Type.Income,
@@ -279,7 +279,7 @@ namespace NobleBank.Application.Tests.TransactionTests
 
             var transaction3 = TestHelpers.CreateTransaction(
                 Guid.NewGuid(),
-                card.Id,
+                card,
                 300m,
                 "Transaction 3",
                 TransactionsEnum.Type.Expense,

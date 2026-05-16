@@ -55,7 +55,7 @@ namespace NobleBank.Infrastructure.Persistence
                     entry.Entity.CreatedAt = utcNow;
                     entry.Entity.UpdatedAt = utcNow;
                 }
-                else if (entry.State == EntityState.Modified)   
+                else if (entry.State == EntityState.Modified)
                 {
                     entry.Entity.UpdatedAt = utcNow;
                 }

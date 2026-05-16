@@ -59,7 +59,7 @@ namespace NobleBank.Application.Tests.TransactionTests
 
         public static Transaction CreateTransaction(
             Guid id,
-            Guid cardId,
+            Card card,
             decimal amount,
             string description,
             TransactionsEnum.Type type,
@@ -70,7 +70,7 @@ namespace NobleBank.Application.Tests.TransactionTests
                 amount: amount,
                 description: description,
                 type: type,
-                cardId: cardId,
+                card: card,
                 performedBy: performedBy);
 
             SetPrivateProperty(transaction, nameof(Transaction.Id), id);

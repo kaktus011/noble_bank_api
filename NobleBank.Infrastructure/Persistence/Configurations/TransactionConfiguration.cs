@@ -17,7 +17,7 @@ namespace NobleBank.Infrastructure.Persistence.Configurations
 
             builder.Property(t => t.Description)
                 .HasColumnType("nvarchar(250)")
-                .IsRequired(false);
+                .IsRequired();
 
             builder.Property(t => t.Type)
                 .HasConversion<int>()

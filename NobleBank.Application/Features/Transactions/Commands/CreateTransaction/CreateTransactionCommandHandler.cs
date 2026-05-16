@@ -57,7 +57,7 @@ public class CreateTransactionCommandHandler
             amount: request.Amount,
             description: request.Description,
             type: request.Type,
-            cardId: request.CardId,
+            card: card,
             performedBy: request.UserId
         );
 

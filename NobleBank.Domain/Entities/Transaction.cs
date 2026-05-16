@@ -27,7 +27,7 @@ public class Transaction
         decimal amount,
         string description,
         TransactionsEnum.Type type,
-        Guid cardId,
+        Card card,
         string performedBy)
     {
         return new Transaction
@@ -35,7 +35,8 @@ public class Transaction
             Amount = amount,
             Description = description,
             Type = type,
-            CardId = cardId,
+            Card = card,
+            CardId = card.Id,
             OccurredAt = DateTime.UtcNow,
             PerformedBy = performedBy
         };

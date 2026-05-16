@@ -25,7 +25,7 @@ namespace NobleBank.Application.Tests.TransactionTests
                 amount: 150.50m,
                 description: "Coffee",
                 type: TransactionsEnum.Type.Expense,
-                cardId: card.Id,
+                card: card,
                 performedBy: "user-1");
 
             // Act
@@ -60,7 +60,7 @@ namespace NobleBank.Application.Tests.TransactionTests
                 amount: 5000m,
                 description: "Monthly salary",
                 type: TransactionsEnum.Type.Income,
-                cardId: card.Id,
+                card: card,
                 performedBy: "user-1");
 
             // Act
@@ -91,7 +91,7 @@ namespace NobleBank.Application.Tests.TransactionTests
                 amount: 45.99m,
                 description: "Dinner",
                 type: TransactionsEnum.Type.Expense,
-                cardId: card.Id,
+                card: card,
                 performedBy: "user-1");
 
             // Act
@@ -122,12 +122,12 @@ namespace NobleBank.Application.Tests.TransactionTests
                 amount: 100m,
                 description: "Test",
                 type: TransactionsEnum.Type.Expense,
-                cardId: card.Id,
+                card: card,
                 performedBy: "user-1");
 
-            // Manually set the Card navigation property
-            var cardProperty = typeof(Transaction).GetProperty(nameof(Transaction.Card));
-            cardProperty?.SetValue(transaction, card);
+            // No longer needed to manually set the Card navigation property
+            // var cardProperty = typeof(Transaction).GetProperty(nameof(Transaction.Card));
+            // cardProperty?.SetValue(transaction, card);
 
             // Act
             var dto = mapper.Map<TransactionDto>(transaction);
@@ -156,14 +156,14 @@ namespace NobleBank.Application.Tests.TransactionTests
                 amount: 100m,
                 description: "Transaction 1",
                 type: TransactionsEnum.Type.Expense,
-                cardId: card.Id,
+                card: card,
                 performedBy: "user-1");
 
             var transaction2 = Transaction.Create(
                 amount: 500m,
                 description: "Transaction 2",
                 type: TransactionsEnum.Type.Income,
-                cardId: card.Id,
+                card: card,
                 performedBy: "user-1");
 
             var transactions = new List<Transaction> { transaction1, transaction2 };
@@ -199,7 +199,7 @@ namespace NobleBank.Application.Tests.TransactionTests
                 amount: 9999.99m,
                 description: "Large transaction",
                 type: TransactionsEnum.Type.Expense,
-                cardId: card.Id,
+                card: card,
                 performedBy: "user-1");
 
             // Act

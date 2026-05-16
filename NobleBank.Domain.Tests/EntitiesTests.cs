@@ -416,7 +416,7 @@ namespace NobleBank.Domain.Tests
         public void Transaction_Create_ShouldInitializeFields()
         {
             // Arrange
-            var cardId = Guid.NewGuid();
+            var card = CreateActiveTestCard();
             var performedBy = "user-1";
 
             // Act
@@ -424,11 +424,12 @@ namespace NobleBank.Domain.Tests
                 amount: 150m,
                 description: "Salary",
                 type: TransactionsEnum.Type.Income,
-                cardId: cardId,
+                card: card,
                 performedBy: performedBy);
 
             // Assert
-            Assert.Equal(cardId, transaction.CardId);
+            Assert.Equal(card.Id, transaction.CardId);
+            Assert.Equal(card, transaction.Card);
             Assert.Equal(150m, transaction.Amount);
             Assert.Equal(TransactionsEnum.Type.Income, transaction.Type);
             Assert.Equal("Salary", transaction.Description);
