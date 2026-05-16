@@ -63,12 +63,12 @@ namespace NobleBank.Infrastructure.Persistence
 
             int result = await base.SaveChangesAsync(cancellationToken);
 
-            await DispatchDomainEventsAsync();
+            await DispatchDomainEventsAsync(cancellationToken);
 
             return result;
         }
 
-        private async Task DispatchDomainEventsAsync()
+        private async Task DispatchDomainEventsAsync(CancellationToken cancellationToken)
         {
             List<BaseEntity> entities = ChangeTracker
                 .Entries<BaseEntity>()
@@ -81,7 +81,7 @@ namespace NobleBank.Infrastructure.Persistence
 
             foreach (var @event in events)
             {
-                await _mediator.Publish(@event);
+                await _mediator.Publish(@event, cancellationToken);
             }
         }
     }

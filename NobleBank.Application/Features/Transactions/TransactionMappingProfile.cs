@@ -10,6 +10,6 @@ public class TransactionMappingProfile : Profile
     {
         CreateMap<Transaction, TransactionDto>()
             .ForMember(d => d.Type, o => o.MapFrom(s => s.Type.ToString()))
-            .ForMember(d => d.CardLast4, o => o.MapFrom(s => s.Card != null ? s.Card.Last4Digits : null));
+            .ForMember(d => d.CardLast4, o => o.MapFrom(s => s.Card != null ? s.Card.Last4Digits : string.Empty));
     }
 }

@@ -42,7 +42,7 @@ namespace NobleBank.Application.Tests.TransactionTests
 
             // Assert
             result.ShouldHaveValidationErrorFor(x => x.CardId)
-                .WithErrorMessage("Card ID is required.");
+                .WithErrorMessage(Constants.Requirements.CardIdRequired);
         }
 
         [Fact]
@@ -61,7 +61,7 @@ namespace NobleBank.Application.Tests.TransactionTests
 
             // Assert
             result.ShouldHaveValidationErrorFor(x => x.Amount)
-                .WithErrorMessage("Transaction amount must be greater than 0.");
+                .WithErrorMessage(Constants.Requirements.TransactionAmountPositive);
         }
 
         [Fact]
@@ -98,7 +98,7 @@ namespace NobleBank.Application.Tests.TransactionTests
 
             // Assert
             result.ShouldHaveValidationErrorFor(x => x.Description)
-                .WithErrorMessage("Transaction description is required.");
+                .WithErrorMessage(Constants.Requirements.TransactionDescriptionRequired);
         }
 
         [Fact]
@@ -118,7 +118,7 @@ namespace NobleBank.Application.Tests.TransactionTests
 
             // Assert
             result.ShouldHaveValidationErrorFor(x => x.Description)
-                .WithErrorMessage("Transaction description cannot exceed 250 characters.");
+                .WithErrorMessage(Constants.Requirements.TransactionDescriptionMaxLength);
         }
 
         [Fact]

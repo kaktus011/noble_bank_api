@@ -58,6 +58,11 @@ public class TransactionsController : BaseController
     public async Task<ActionResult<TransactionDto>> Create(
         [FromBody] CreateTransactionCommand command)
     {
+        if (string.IsNullOrWhiteSpace(UserId))
+        {
+            return Unauthorized();
+        }
+
         CreateTransactionCommand commandWithUserId = command with { UserId = UserId };
 
         TransactionDto transaction = await _mediator.Send(commandWithUserId);

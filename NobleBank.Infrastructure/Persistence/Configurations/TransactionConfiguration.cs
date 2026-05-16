@@ -17,7 +17,7 @@ namespace NobleBank.Infrastructure.Persistence.Configurations
 
             builder.Property(t => t.Description)
                 .HasColumnType("nvarchar(250)")
-                .IsRequired();
+                .IsRequired(false);
 
             builder.Property(t => t.Type)
                 .HasConversion<int>()
@@ -29,7 +29,7 @@ namespace NobleBank.Infrastructure.Persistence.Configurations
 
             builder.Property(t => t.PerformedBy)
                 .HasColumnType("nvarchar(450)")
-                .IsRequired(false);
+                .IsRequired();
 
             // Relations with Card
             builder.HasOne(t => t.Card)
