@@ -1,4 +1,3 @@
-using NobleBank.Application.Features.Cards;
 using NobleBank.Application.Features.Cards.Queries.GetAllCards;
 using NobleBank.Domain.Common;
 

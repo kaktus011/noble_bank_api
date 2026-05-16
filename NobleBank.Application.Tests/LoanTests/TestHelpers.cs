@@ -4,7 +4,6 @@ using NobleBank.Application.Common.Interfaces;
 using NobleBank.Application.Features.Loans;
 using NobleBank.Domain.Common;
 using NobleBank.Domain.Entities;
-using NobleBank.Domain.Interfaces;
 
 namespace NobleBank.Application.Tests.LoanTests
 {

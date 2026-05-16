@@ -1,4 +1,3 @@
-using FluentValidation;
 using NobleBank.Application.Features.Loans.Commands.RequestLoan;
 using NobleBank.Domain.Common;
 

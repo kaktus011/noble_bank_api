@@ -1,5 +1,3 @@
-using NobleBank.Infrastructure.Identity;
-
 namespace NobleBank.Infrastructure.Tests
 {
     public class TokenServiceTests

@@ -25,12 +25,18 @@
             public const string LoanMinTerm = "Loan term must be at least 1 month.";
             public const string LoanMaxTerm = "Loan term cannot exceed 30 years (360 months).";
             public const string LoanInterestRate = "Loan interest rate cannot be negative.";
+
+            public const string CardIdRequired = "Card ID is required.";
+            public const string TransactionAmountPositive = "Transaction amount must be greater than 0.";
+            public const string TransactionDescriptionRequired = "Transaction description is required.";
+            public const string TransactionDescriptionMaxLength = "Transaction description cannot exceed 250 characters.";
         }
 
-        public class ErrorMessages
+        public class Exceptions
         {
             public const string LoanTypeInvalid = "Invalid loan type.";
             public const string InvalidEmailFormat = "Invalid email format.";
+            public const string InvalidTransactionType = "Invalid transaction type.";
         }
     }
 }

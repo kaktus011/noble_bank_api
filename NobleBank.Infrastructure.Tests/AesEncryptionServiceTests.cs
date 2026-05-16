@@ -1,7 +1,3 @@
-using Microsoft.Extensions.Options;
-using NobleBank.Infrastructure.Services;
-using NobleBank.Infrastructure.Settings;
-
 namespace NobleBank.Infrastructure.Tests
 {
     public class AesEncryptionServiceTests

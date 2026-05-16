@@ -1,6 +1,5 @@
 using NobleBank.Domain.Common;
 using NobleBank.Domain.Interfaces;
-using System.Linq;
 
 namespace NobleBank.Domain.ValueObjects
 {

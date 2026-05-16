@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using System;
 
 namespace NobleBank.Domain.Entities
 {

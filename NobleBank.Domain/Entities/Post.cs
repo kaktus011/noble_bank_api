@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace NobleBank.Domain.Entities
+﻿namespace NobleBank.Domain.Entities
 {
 	public class Post : BaseEntity
 	{

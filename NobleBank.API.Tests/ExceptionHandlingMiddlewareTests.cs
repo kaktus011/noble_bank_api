@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
 using NobleBank.API.Middleware;
 using NobleBank.Application.Common.Exceptions;
+using NobleBank.Domain.Common;
 
 namespace NobleBank.API.Tests
 {
@@ -30,6 +31,27 @@ namespace NobleBank.API.Tests
             Assert.Equal("Validation failed", problem!.Title);
             Assert.True(problem.Extensions.ContainsKey("traceId"));
             Assert.True(problem.Extensions.ContainsKey("errors"));
+        }
+
+        [Fact]
+        public async Task InvokeAsync_WhenDomainExceptionOccurs_ShouldReturn400WithMessage()
+        {
+            // Arrange
+            var context = new DefaultHttpContext();
+            context.Response.Body = new MemoryStream();
+            var middleware = new ExceptionHandlingMiddleware(_ => throw new DomainException("Insufficient funds."), NullLogger<ExceptionHandlingMiddleware>.Instance);
+
+            // Act
+            await middleware.InvokeAsync(context);
+            context.Response.Body.Position = 0;
+            var problem = await JsonSerializer.DeserializeAsync<ProblemDetails>(context.Response.Body, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            // Assert
+            Assert.Equal(StatusCodes.Status400BadRequest, context.Response.StatusCode);
+            Assert.NotNull(problem);
+            Assert.Equal("Business Rule Violation", problem!.Title);
+            Assert.Equal("Insufficient funds.", problem.Detail);
+            Assert.True(problem.Extensions.ContainsKey("traceId"));
         }
 
         [Fact]

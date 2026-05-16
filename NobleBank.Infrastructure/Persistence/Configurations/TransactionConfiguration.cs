@@ -17,7 +17,7 @@ namespace NobleBank.Infrastructure.Persistence.Configurations
 
             builder.Property(t => t.Description)
                 .HasColumnType("nvarchar(250)")
-                .IsRequired(false);
+                .IsRequired();
 
             builder.Property(t => t.Type)
                 .HasConversion<int>()
@@ -27,11 +27,17 @@ namespace NobleBank.Infrastructure.Persistence.Configurations
                 .HasColumnType("datetime2")
                 .IsRequired();
 
+            builder.Property(t => t.PerformedBy)
+                .HasColumnType("nvarchar(450)")
+                .IsRequired();
+
+            // Relations with Card
             builder.HasOne(t => t.Card)
                 .WithMany(c => c.Transactions)
                 .HasForeignKey(t => t.CardId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Indexing
             builder.HasIndex(t => t.CardId)
                 .HasDatabaseName("IX_Transactions_CardId");
 

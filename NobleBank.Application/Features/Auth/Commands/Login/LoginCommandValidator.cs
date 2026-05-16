@@ -9,7 +9,7 @@ namespace NobleBank.Application.Features.Auth.Commands.Login
         {
             RuleFor(x => x.Email)
                 .NotEmpty().WithMessage(Constants.Requirements.EmailRequired)
-                .EmailAddress().WithMessage(Constants.ErrorMessages.InvalidEmailFormat);
+                .EmailAddress().WithMessage(Constants.Exceptions.InvalidEmailFormat);
 
             RuleFor(x => x.Password)
                 .NotEmpty().WithMessage(Constants.Requirements.PasswordRequired);
