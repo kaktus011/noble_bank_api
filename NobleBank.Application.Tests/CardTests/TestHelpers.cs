@@ -98,10 +98,10 @@ namespace NobleBank.Application.Tests.CardTests
             public string Token { get; set; } = string.Empty;
             public (string UserId, string Email, string FullName)? LastTokenRequest { get; private set; }
 
-            public string GenerateToken(string userId, string email, string fullName)
+            public Task<string> GenerateToken(string userId, string email, string fullName)
             {
                 LastTokenRequest = (userId, email, fullName);
-                return Token;
+                return Task.FromResult(Token);
             }
         }
     }

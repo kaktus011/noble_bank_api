@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using NobleBank.Application.Common.Interfaces;
+using NobleBank.Domain.Common;
 using NobleBank.Domain.Entities;
 
 namespace NobleBank.Infrastructure.Identity
@@ -24,7 +25,7 @@ namespace NobleBank.Infrastructure.Identity
 
             if (existingUser is not null)
             {
-                return (false, string.Empty, "Email is already registered.");
+                return (false, string.Empty, Constants.Exceptions.EmailAlreadyRegistered);
             }
 
             ApplicationUser user = new()
@@ -43,6 +44,8 @@ namespace NobleBank.Infrastructure.Identity
 
                 return (false, string.Empty, errors);
             }
+            
+            await _userManager.AddToRoleAsync(user, Roles.User);
 
             return (true, user.Id, string.Empty);
         }
@@ -54,19 +57,19 @@ namespace NobleBank.Infrastructure.Identity
 
             if (user is null)
             {
-                return (false, string.Empty, "Invalid email or password.");
+                return (false, string.Empty, Constants.Exceptions.InvalidCredentials);
             }
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure: true);
 
             if (result.IsLockedOut)
             {
-                return (false, string.Empty, "Account is locked. Try again later.");
+                return (false, string.Empty, Constants.Exceptions.AccountLocked);
             }
 
             if (!result.Succeeded)
             {
-                return (false, string.Empty, "Invalid email or password.");
+                return (false, string.Empty, Constants.Exceptions.InvalidCredentials);
             }
 
             return (true, user.Id, string.Empty);

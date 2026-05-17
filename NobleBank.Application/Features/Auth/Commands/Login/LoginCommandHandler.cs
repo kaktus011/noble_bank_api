@@ -35,7 +35,7 @@ namespace NobleBank.Application.Features.Auth.Commands.Login
             ApplicationUser? user = await _context.Users
                 .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
-            string token = _tokenService.GenerateToken(
+            string token = await _tokenService.GenerateToken(
                 userId,
                 user?.Email ?? request.Email,
                 user?.FullName ?? string.Empty);

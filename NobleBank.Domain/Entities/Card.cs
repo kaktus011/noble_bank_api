@@ -27,6 +27,8 @@ namespace NobleBank.Domain.Entities
 
         public DateTime ExpiryDate { get; private set; }
 
+        public string? RejectionReason { get; private set; }
+
         public string UserId { get; private set; } = string.Empty;
 
         public ApplicationUser User { get; private set; } = null!;
@@ -77,6 +79,14 @@ namespace NobleBank.Domain.Entities
             Status = Status.Active;
             UpdatedAt = DateTime.UtcNow;
             LastModifiedBy = performedBy;
+        }
+
+        public void Reject(string reason, string performedBy)
+        {
+            Status = Status.Rejected;
+            UpdatedAt = DateTime.UtcNow;
+            LastModifiedBy = performedBy;
+            RejectionReason = reason;
         }
 
         public void Block(string reason, string performedBy)

@@ -3,13 +3,13 @@ namespace NobleBank.Infrastructure.Tests
     public class TokenServiceTests
     {
         [Fact]
-        public void GenerateToken_ShouldCreateJwtWithExpectedClaims()
+        public async Task GenerateToken_ShouldCreateJwtWithExpectedClaims()
         {
             // Arrange
             var service = TestHelpers.CreateTokenService();
 
             // Act
-            var token = service.GenerateToken("user-1", "john.doe@example.com", "John Doe");
+            var token = await service.GenerateToken("user-1", "john.doe@example.com", "John Doe");
 
             // Assert
             Assert.False(string.IsNullOrWhiteSpace(token));

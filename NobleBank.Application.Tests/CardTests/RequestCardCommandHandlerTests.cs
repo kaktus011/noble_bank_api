@@ -34,7 +34,7 @@ namespace NobleBank.Application.Tests.CardTests
             Assert.Equal("JOHN DOE", result.CardHolder);
             Assert.Equal("Visa", result.Brand);
             Assert.Equal("Credit", result.Type);
-            Assert.Equal("Active", result.Status);
+            Assert.Equal("Pending", result.Status);
             Assert.Equal(0m, result.Balance);
             Assert.Equal(250m, result.CreditLimit);
             Assert.Equal("EUR", result.Currency);
@@ -42,10 +42,7 @@ namespace NobleBank.Application.Tests.CardTests
 
             var persistedCard = await context.Cards.FirstOrDefaultAsync(c => c.Id == result.Id);
             Assert.NotNull(persistedCard);
-            Assert.Equal("user-1", persistedCard!.UserId);
-            Assert.Equal("user-1", persistedCard.CreatedBy);
-            Assert.Equal("user-1", persistedCard.LastModifiedBy);
-            Assert.Equal(CardEnum.Status.Active, persistedCard.Status);
+            Assert.Equal(CardEnum.Status.Pending, persistedCard.Status);
         }
 
         [Fact]

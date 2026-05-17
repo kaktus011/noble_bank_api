@@ -4,13 +4,15 @@ using NobleBank.API.Middleware;
 using NobleBank.Application;
 using NobleBank.Infrastructure;
 using NobleBank.Infrastructure.Settings;
+using NobleBank.Infrastructure.Seed;
 using System.Text;
+using NobleBank.Domain.Common;
 
 namespace NobleBank.API
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -44,7 +46,7 @@ namespace NobleBank.API
             builder.Services.AddInfrastructure(builder.Configuration);
 
             // JWT Authentication
-            var jwtSettings = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()!;
+            JwtSettings jwtSettings = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()!;
 
             builder.Services.AddAuthorization();
             builder.Services.AddAuthentication(options =>
@@ -73,7 +75,22 @@ namespace NobleBank.API
                           .AllowAnyHeader()
                           .AllowAnyMethod()));
 
-            var app = builder.Build();
+            WebApplication app = builder.Build();
+
+            using (IServiceScope scope = app.Services.CreateScope())
+            {
+                IServiceProvider services = scope.ServiceProvider;
+
+                try
+                {
+                    await DatabaseSeeder.SeedAsync(services);
+                }
+                catch (Exception ex)
+                {
+                    ILogger<Program> logger = services.GetRequiredService<ILogger<Program>>();
+                    logger.LogError(ex, Constants.Exceptions.CannotSeedDatabase);
+                }
+            }
 
             if (app.Environment.IsDevelopment())
             {

@@ -9,7 +9,7 @@ using NobleBank.Domain.Common;
 
 namespace NobleBank.API.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = Roles.Administrator)]
     [ApiController]
     [Route("api/[controller]")]
     public class PostsController : BaseController
