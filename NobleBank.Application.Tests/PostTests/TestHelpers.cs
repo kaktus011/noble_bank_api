@@ -1,17 +1,17 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using NobleBank.Application.Common.Interfaces;
-using NobleBank.Application.Features.Transactions;
-using NobleBank.Domain.Common;
+using NobleBank.Application.Features.Posts;
 using NobleBank.Domain.Entities;
 
-namespace NobleBank.Application.Tests.TransactionTests
+namespace NobleBank.Application.Tests.PostTests
 {
     internal static class TestHelpers
     {
         public static IMapper CreateMapper()
         {
-            var configuration = new MapperConfiguration(cfg => cfg.AddProfile<TransactionMappingProfile>());
+            var configuration = new MapperConfiguration(cfg => cfg.AddProfile<PostMappingProfile>());
+
             return configuration.CreateMapper();
         }
 
@@ -35,48 +35,23 @@ namespace NobleBank.Application.Tests.TransactionTests
             };
         }
 
-        public static Card CreateAndActivateCard(
-            IApplicationDbContext context,
-            string userId,
-            CardEnum.Type type = CardEnum.Type.Debit,
-            decimal balance = 1000m,
-            decimal? creditLimit = null)
-        {
-            var card = Card.Create(
-                cardHolder: "Test User",
-                plainCardNumber: "4242424242424242",
-                type: type,
-                brand: CardEnum.Brand.Visa,
-                userId: userId,
-                createdBy: userId,
-                initialBalance: balance,
-                creditLimit: creditLimit);
-
-            card.Activate(userId);
-            context.Cards.Add(card);
-            return card;
-        }
-
-        public static Transaction CreateTransaction(
+        public static Post CreatePost(
             Guid id,
-            Card card,
-            decimal amount,
-            string description,
-            TransactionsEnum.Type type,
-            DateTime occurredAt,
-            string performedBy = "user-1")
+            string userId,
+            string title = "Test Post",
+            string body = "Test Body",
+            DateTime? createdAt = null)
         {
-            var transaction = Transaction.Create(
-                amount: amount,
-                description: description,
-                type: type,
-                card: card,
-                performedBy: performedBy);
+            var post = Post.Create(
+                title: title,
+                body: body,
+                userId: userId,
+                createdBy: userId);
 
-            SetPrivateProperty(transaction, nameof(Transaction.Id), id);
-            SetPrivateProperty(transaction, nameof(Transaction.OccurredAt), occurredAt);
+            SetPrivateProperty(post, nameof(Post.Id), id);
+            SetPrivateProperty(post, nameof(Post.CreatedAt), createdAt ?? DateTime.UtcNow);
 
-            return transaction;
+            return post;
         }
 
         public static void SetPrivateProperty<T>(T instance, string propertyName, object value)
