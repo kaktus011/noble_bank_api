@@ -98,12 +98,6 @@ namespace NobleBank.Application.Tests.TransactionTests
             public DbSet<Transaction> Transactions => Set<Transaction>();
             public DbSet<Post> Posts => Set<Post>();
             public DbSet<ApplicationUser> Users => Set<ApplicationUser>();
-
-            protected override void OnModelCreating(ModelBuilder modelBuilder)
-            {
-                base.OnModelCreating(modelBuilder);
-                modelBuilder.ApplyConfigurationsFromAssembly(typeof(TransactionMappingProfile).Assembly);
-            }
         }
     }
 }

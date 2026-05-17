@@ -44,7 +44,7 @@
             public const string LoanTypeInvalid = "Invalid loan type.";
             public const string InvalidEmailFormat = "Invalid email format.";
             public const string InvalidTransactionType = "Invalid transaction type.";
-            public const string PostNotFound = "Post not found or does not belong to user";
+            public const string PostNotFound = "Post not found or does not belong to user.";
         }
     }
 }

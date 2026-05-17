@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
+using NobleBank.Application.Common.Exceptions;
 using NobleBank.Application.Common.Interfaces;
 using NobleBank.Application.Features.Posts.Queries.GetAllPosts;
 using NobleBank.Domain.Common;
@@ -23,6 +25,13 @@ namespace NobleBank.Application.Features.Posts.Commands.CreatePost
             if (string.IsNullOrEmpty(request.UserId))
             {
                 throw new UnauthorizedAccessException(Constants.Requirements.UserIdRequired);
+            }
+
+            bool userExists = await _context.Users.AnyAsync(u => u.Id == request.UserId, cancellationToken);
+
+            if (!userExists)
+            {
+                throw new NotFoundException("User not found");
             }
 
             Post post = Post.Create(

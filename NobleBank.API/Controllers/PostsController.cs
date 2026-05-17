@@ -24,6 +24,11 @@ namespace NobleBank.API.Controllers
         [HttpGet]
         public async Task<ActionResult<List<PostDto>>> GetAll()
         {
+            if (string.IsNullOrWhiteSpace(UserId))
+            {
+                return Unauthorized();
+            }
+
             List<PostDto> posts = await _mediator.Send(new GetAllPostsQuery(UserId));
 
             return Ok(posts);
@@ -32,6 +37,11 @@ namespace NobleBank.API.Controllers
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<PostDto>> GetById(Guid id)
         {
+            if (string.IsNullOrWhiteSpace(UserId))
+            {
+                return Unauthorized();
+            }
+
             PostDto? post = await _mediator.Send(new GetPostByIdQuery(id, UserId));
 
             if (post is null)
@@ -45,6 +55,11 @@ namespace NobleBank.API.Controllers
         [HttpPost]
         public async Task<ActionResult<PostDto>> Create([FromBody] CreatePostCommand command)
         {
+            if (string.IsNullOrWhiteSpace(UserId))
+            {
+                return Unauthorized();
+            }
+
             CreatePostCommand commandWithUserId = command with { UserId = UserId };
 
             PostDto post = await _mediator.Send(commandWithUserId);
@@ -55,6 +70,11 @@ namespace NobleBank.API.Controllers
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {
+            if (string.IsNullOrWhiteSpace(UserId))
+            {
+                return Unauthorized();
+            }
+
             await _mediator.Send(new DeletePostCommand(UserId, id));
 
             return NoContent();

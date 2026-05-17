@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using NobleBank.Application.Common.Exceptions;
 using NobleBank.Application.Features.Posts.Commands.DeletePost;
 using NobleBank.Domain.Common;
 
@@ -59,7 +60,7 @@ namespace NobleBank.Application.Tests.PostTests
             var command = new DeletePostCommand(userId, Guid.NewGuid());
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<Exception>(() => handler.Handle(command, CancellationToken.None));
+            var exception = await Assert.ThrowsAsync<NotFoundException>(() => handler.Handle(command, CancellationToken.None));
             Assert.Equal(Constants.Exceptions.PostNotFound, exception.Message);
         }
 
@@ -85,7 +86,7 @@ namespace NobleBank.Application.Tests.PostTests
             var command = new DeletePostCommand(userId1, postId); // user 1 tries to delete
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<Exception>(() => handler.Handle(command, CancellationToken.None));
+            var exception = await Assert.ThrowsAsync<NotFoundException>(() => handler.Handle(command, CancellationToken.None));
             Assert.Equal(Constants.Exceptions.PostNotFound, exception.Message);
 
             // verify it wasn't deleted

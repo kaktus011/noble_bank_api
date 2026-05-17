@@ -55,25 +55,31 @@ namespace NobleBank.API.Tests
             public List<object> Requests { get; } = [];
 
             public Task Publish(object notification, CancellationToken cancellationToken = default) => Task.CompletedTask;
+
             public Task Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default) where TNotification : INotification => Task.CompletedTask;
+
             public Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
             {
                 Requests.Add(request!);
                 var response = _handler(request!);
                 return Task.FromResult((TResponse?)response!);
             }
+
             public Task<object?> Send(object request, CancellationToken cancellationToken = default)
             {
                 Requests.Add(request);
                 return Task.FromResult(_handler(request));
             }
+
             public Task Send<TRequest>(TRequest request, CancellationToken cancellationToken = default) where TRequest : IRequest
             {
                 Requests.Add(request);
                 _handler(request);
                 return Task.CompletedTask;
             }
+
             public IAsyncEnumerable<TResponse> CreateStream<TResponse>(IStreamRequest<TResponse> request, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+
             public IAsyncEnumerable<object?> CreateStream(object request, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         }
     }

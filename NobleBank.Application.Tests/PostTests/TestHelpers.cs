@@ -11,6 +11,7 @@ namespace NobleBank.Application.Tests.PostTests
         public static IMapper CreateMapper()
         {
             var configuration = new MapperConfiguration(cfg => cfg.AddProfile<PostMappingProfile>());
+
             return configuration.CreateMapper();
         }
 
@@ -72,12 +73,6 @@ namespace NobleBank.Application.Tests.PostTests
             public DbSet<Transaction> Transactions => Set<Transaction>();
             public DbSet<Post> Posts => Set<Post>();
             public DbSet<ApplicationUser> Users => Set<ApplicationUser>();
-
-            protected override void OnModelCreating(ModelBuilder modelBuilder)
-            {
-                base.OnModelCreating(modelBuilder);
-                modelBuilder.ApplyConfigurationsFromAssembly(typeof(PostMappingProfile).Assembly);
-            }
         }
     }
 }

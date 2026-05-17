@@ -47,6 +47,19 @@ namespace NobleBank.API.Tests
         }
 
         [Fact]
+        public async Task GetAll_WhenUserIdIsNullOrWhiteSpace_ShouldReturnUnauthorized()
+        {
+            // Arrange
+            var controller = CreateController(string.Empty);
+
+            // Act
+            var result = await controller.GetAll();
+
+            // Assert
+            Assert.IsType<UnauthorizedResult>(result.Result);
+        }
+
+        [Fact]
         public async Task GetById_WhenPostExists_ShouldReturnOk()
         {
             // Arrange
@@ -69,6 +82,19 @@ namespace NobleBank.API.Tests
             var query = Assert.IsType<GetPostByIdQuery>(request);
             Assert.Equal(postId, query.PostId);
             Assert.Equal(userId, query.UserId);
+        }
+
+        [Fact]
+        public async Task GetById_WhenUserIdIsNullOrWhiteSpace_ShouldReturnUnauthorized()
+        {
+            // Arrange
+            var controller = CreateController(string.Empty);
+
+            // Act
+            var result = await controller.GetById(Guid.NewGuid());
+
+            // Assert
+            Assert.IsType<UnauthorizedResult>(result.Result);
         }
 
         [Fact]
@@ -130,6 +156,19 @@ namespace NobleBank.API.Tests
         }
 
         [Fact]
+        public async Task Create_WhenUserIdIsNullOrWhiteSpace_ShouldReturnUnauthorized()
+        {
+            // Arrange
+            var controller = CreateController(string.Empty);
+
+            // Act
+            var result = await controller.Create(new CreatePostCommand(string.Empty, "title", "body"));
+
+            // Assert
+            Assert.IsType<UnauthorizedResult>(result.Result);
+        }
+
+        [Fact]
         public async Task Delete_ShouldReturnNoContent()
         {
             // Arrange
@@ -149,6 +188,19 @@ namespace NobleBank.API.Tests
             var command = Assert.IsType<DeletePostCommand>(request);
             Assert.Equal(postId, command.PostId);
             Assert.Equal(userId, command.UserId);
+        }
+
+        [Fact]
+        public async Task Delete_WhenUserIdIsNullOrWhiteSpace_ShouldReturnUnauthorized()
+        {
+            // Arrange
+            var controller = CreateController(string.Empty);
+
+            // Act
+            var result = await controller.Delete(Guid.NewGuid());
+
+            // Assert
+            Assert.IsType<UnauthorizedResult>(result);
         }
     }
 }

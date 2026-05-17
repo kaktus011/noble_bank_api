@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using NobleBank.Application.Common.Exceptions;
 using NobleBank.Application.Features.Posts.Commands.CreatePost;
 using NobleBank.Domain.Common;
 
@@ -47,6 +48,19 @@ namespace NobleBank.Application.Tests.PostTests
             // Act & Assert
             var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => handler.Handle(command, CancellationToken.None));
             Assert.Equal(Constants.Requirements.UserIdRequired, exception.Message);
+        }
+
+        [Fact]
+        public async Task Handle_WithNonExistentUser_ShouldThrowNotFoundException()
+        {
+            // Arrange
+            using var context = TestHelpers.CreateDbContext();
+            var handler = new CreatePostCommandHandler(context, TestHelpers.CreateMapper());
+            var command = new CreatePostCommand("non-existent-user", "Test Title", "Test Body");
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<NotFoundException>(() => handler.Handle(command, CancellationToken.None));
+            Assert.Equal("User not found", exception.Message);
         }
     }
 }

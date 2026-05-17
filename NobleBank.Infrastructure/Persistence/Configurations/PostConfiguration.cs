@@ -16,7 +16,7 @@ namespace NobleBank.Infrastructure.Persistence.Configurations
                 .IsRequired();
 
             builder.Property(p => p.Body)
-                .HasColumnType("nvarchar(max)")
+                .HasColumnType("nvarchar(500)")
                 .IsRequired();
 
             builder.Property(p => p.CreatedBy)

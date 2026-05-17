@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using NobleBank.Application.Common.Exceptions;
 using NobleBank.Application.Common.Interfaces;
 using NobleBank.Domain.Common;
 using NobleBank.Domain.Entities;
@@ -28,7 +29,7 @@ namespace NobleBank.Application.Features.Posts.Commands.DeletePost
 
             if (post is null)
             {
-                throw new Exception(Constants.Exceptions.PostNotFound);
+                throw new NotFoundException(Constants.Exceptions.PostNotFound);
             }
 
             _context.Posts.Remove(post);
