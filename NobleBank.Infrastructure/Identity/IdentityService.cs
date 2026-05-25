@@ -36,16 +36,23 @@ namespace NobleBank.Infrastructure.Identity
                 LastName = lastName
             };
 
-            IdentityResult result = await _userManager.CreateAsync(user, password);
+            IdentityResult createResult = await _userManager.CreateAsync(user, password);
 
-            if (!result.Succeeded)
+            if (!createResult.Succeeded)
             {
-                string errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                string errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
 
                 return (false, string.Empty, errors);
             }
-            
-            await _userManager.AddToRoleAsync(user, Roles.User);
+
+            IdentityResult roleResult = await _userManager.AddToRoleAsync(user, Roles.User);
+
+            if (!roleResult.Succeeded)
+            {
+                string roleErrors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
+
+                return (false, string.Empty, roleErrors);
+            }
 
             return (true, user.Id, string.Empty);
         }

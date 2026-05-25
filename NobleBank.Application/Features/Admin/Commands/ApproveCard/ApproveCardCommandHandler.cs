@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using NobleBank.Application.Common.Exceptions;
 using NobleBank.Application.Common.Interfaces;
 using NobleBank.Domain.Common;
 using NobleBank.Domain.Entities;
@@ -27,12 +28,12 @@ namespace NobleBank.Application.Features.Admin.Commands.ApproveCard
 
             if (card is null)
             {
-                throw new Exception(Constants.Exceptions.CardNotFound);
+                throw new NotFoundException(Constants.Exceptions.CardNotFound);
             }
 
             if (card.Status != CardEnum.Status.Pending)
             {
-                throw new Exception($"Cannot approve card in {card.Status} status");
+                throw new DomainException($"Cannot approve card in {card.Status} status");
             }
 
             card.Activate(request.AdminUserId);

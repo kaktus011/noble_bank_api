@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using NobleBank.Application.Common.Exceptions;
 using NobleBank.Application.Common.Interfaces;
 using NobleBank.Domain.Common;
 using NobleBank.Domain.Entities;
@@ -24,11 +25,14 @@ namespace NobleBank.Infrastructure.Identity
 
         public async Task<string> GenerateToken(string userId, string email, string fullName)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user is null)
-                throw new Exception("User not found");
+            ApplicationUser? user = await _userManager.FindByIdAsync(userId);
 
-            var roles = await _userManager.GetRolesAsync(user);
+            if (user is null)
+            {
+                throw new NotFoundException(Constants.Exceptions.UserNotFound);
+            }
+
+            IList<string> roles = await _userManager.GetRolesAsync(user);
 
             List<Claim> claims = new()
             {
@@ -38,7 +42,7 @@ namespace NobleBank.Infrastructure.Identity
                 new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
-            foreach (var role in roles)
+            foreach (string role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }

@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using NobleBank.Application.Common.Exceptions;
 using NobleBank.Application.Common.Interfaces;
 using NobleBank.Domain.Common;
 using NobleBank.Domain.Entities;
@@ -26,12 +27,12 @@ namespace NobleBank.Application.Features.Admin.Commands.ApproveLoan
 
             if (loan is null)
             {
-                throw new Exception(Constants.Exceptions.LoanNotFound);
+                throw new NotFoundException(Constants.Exceptions.LoanNotFound);
             }
 
             if (loan.Status != LoansEnum.Status.Pending)
             {
-                throw new Exception($"Cannot approve loan in {loan.Status} status");
+                throw new DomainException($"Cannot approve loan in {loan.Status} status");
             }
 
             loan.Approve();

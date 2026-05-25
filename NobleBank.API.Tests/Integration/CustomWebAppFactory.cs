@@ -92,6 +92,11 @@ namespace NobleBank.API.Tests.Integration
                     { "Jwt:Audience", "TestAudience" },
                     { "Jwt:ExpiryMinutes", "60" },
 
+                    // Admin Seeder Settings (provide test credentials for integration tests)
+                    { "AdminSeeder:Email", "admin@test.noblebank.com" },
+                    { "AdminSeeder:Password", "TestAdmin123!@#" },
+                    { "AdminSeeder:Disabled", "false" },
+
                     // Connection string (not actually used since we use InMemory)
                     { "ConnectionStrings:DefaultConnection", "Server=.;Database=TestDb;Trusted_Connection=true;" }
                 };
@@ -108,19 +113,36 @@ namespace NobleBank.API.Tests.Integration
                 }).AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", _ => { });
 
                 // Replace DB with InMemory for end-to-end happy path
+
                 var dbDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
                 if (dbDescriptor != null) services.Remove(dbDescriptor);
 
                 services.AddDbContext<ApplicationDbContext>(options =>
                     options.UseInMemoryDatabase("TestDb"));
 
-                // Ensure DB is created
-                var sp = services.BuildServiceProvider();
-                using var scope = sp.CreateScope();
-                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                db.Database.EnsureDeleted();
-                db.Database.EnsureCreated();
+
+                using (var serviceProvider = services.BuildServiceProvider())
+                {
+                    using (var scope = serviceProvider.CreateScope())
+                    {
+                        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                        db.Database.EnsureDeleted();
+                        db.Database.EnsureCreated();
+                    }
+                }
             });
+        }
+
+        /// <summary>
+        /// Resets the in-memory database by deleting and recreating it. 
+        /// Call this between test methods if you need isolation.
+        /// </summary>
+        public void ResetDatabase()
+        {
+            using var scope = Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            db.Database.EnsureDeleted();
+            db.Database.EnsureCreated();
         }
     }
 }

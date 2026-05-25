@@ -34,6 +34,11 @@ namespace NobleBank.Infrastructure
                     "JWT Secret must be configured.")
                 .ValidateOnStart();
 
+            // Admin Seeder Settings (optional, disabled by default in production)
+            services.AddOptions<AdminSeederSettings>()
+                .Bind(configuration.GetSection(AdminSeederSettings.SectionName))
+                .ValidateDataAnnotations();
+
             // DbContext
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(

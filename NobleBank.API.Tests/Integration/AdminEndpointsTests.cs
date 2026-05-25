@@ -47,7 +47,7 @@ namespace NobleBank.API.Tests.Integration
                     creditLimit: 100m);
 
                 // Ensure Id matches the one we'll call
-                card.GetType().GetProperty("Id").SetValue(card, id);
+                card.Id = id;
 
                 db.Cards.Add(card);
                 db.SaveChanges();
