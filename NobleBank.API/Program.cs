@@ -77,19 +77,30 @@ namespace NobleBank.API
 
             WebApplication app = builder.Build();
 
-            using (IServiceScope scope = app.Services.CreateScope())
-            {
-                IServiceProvider services = scope.ServiceProvider;
+            bool runDatabaseSeeding = app.Environment.IsDevelopment() ||
+                                      builder.Configuration.GetValue<bool>("RunDatabaseSeeding");
 
-                try
+            if (runDatabaseSeeding)
+            {
+                using (IServiceScope scope = app.Services.CreateScope())
                 {
-                    await DatabaseSeeder.SeedAsync(services);
+                    IServiceProvider services = scope.ServiceProvider;
+
+                    try
+                    {
+                        await DatabaseSeeder.SeedAsync(services);
+                    }
+                    catch (Exception ex)
+                    {
+                        ILogger<Program> logger = services.GetRequiredService<ILogger<Program>>();
+                        logger.LogCritical(ex, Constants.Exceptions.CannotSeedDatabase);
+                        throw;
+                    }
                 }
-                catch (Exception ex)
-                {
-                    ILogger<Program> logger = services.GetRequiredService<ILogger<Program>>();
-                    logger.LogError(ex, Constants.Exceptions.CannotSeedDatabase);
-                }
+            }
+            else
+            {
+                app.Logger.LogInformation("Database seeding skipped. Enable 'RunDatabaseSeeding' to run seeding outside Development.");
             }
 
             if (app.Environment.IsDevelopment())
