@@ -29,6 +29,20 @@ namespace NobleBank.Infrastructure.Seed
 
             ApplicationUser? adminUser = await userManager.FindByEmailAsync(adminEmail);
 
+            // Clean up duplicate roles if any (can happen in in-memory tests)
+            foreach (var roleName in new[] { Roles.Administrator, Roles.User })
+            {
+                var matches = roleManager.Roles.Where(r => r.NormalizedName == roleManager.NormalizeKey(roleName)).ToList();
+                if (matches.Count > 1)
+                {
+                    // Keep the first, delete the rest
+                    for (int i = 1; i < matches.Count; i++)
+                    {
+                        await roleManager.DeleteAsync(matches[i]);
+                    }
+                }
+            }
+
             if (adminUser is null)
             {
                 adminUser = new ApplicationUser
@@ -44,7 +58,10 @@ namespace NobleBank.Infrastructure.Seed
 
                 if (result.Succeeded)
                 {
-                    await userManager.AddToRoleAsync(adminUser, Roles.Administrator);
+                    if (!await userManager.IsInRoleAsync(adminUser, Roles.Administrator))
+                    {
+                        await userManager.AddToRoleAsync(adminUser, Roles.Administrator);
+                    }
                 }
             }
         }
