@@ -2,11 +2,13 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NobleBank.Infrastructure.Persistence;
+using NobleBank.Infrastructure.Settings;
 using System.Security.Claims;
 
 namespace NobleBank.API.Tests.Integration
@@ -40,10 +42,62 @@ namespace NobleBank.API.Tests.Integration
         }
     }
 
+    /// <summary>
+    /// Configures test encryption settings to satisfy validation without requiring real secrets.
+    /// </summary>
+    public class TestEncryptionSettingsConfigurator : IConfigureOptions<EncryptionSettings>
+    {
+        public void Configure(EncryptionSettings options)
+        {
+            // This won't work because properties are init-only.
+            // Instead, we'll remove and re-add the options below.
+        }
+    }
+
     public class CustomWebAppFactory : WebApplicationFactory<Program>
     {
+        private readonly string _testKey;
+        private readonly string _testIV;
+
+        public CustomWebAppFactory()
+        {
+            // Generate valid test encryption keys once for the factory lifetime
+            using (var aes = System.Security.Cryptography.Aes.Create())
+            {
+                aes.GenerateKey();
+                aes.GenerateIV();
+                _testKey = Convert.ToBase64String(aes.Key);
+                _testIV = Convert.ToBase64String(aes.IV);
+            }
+        }
+
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
+            // Set environment variables for test encryption settings BEFORE building
+            builder.UseEnvironment("Test");
+
+            builder.ConfigureAppConfiguration((context, config) =>
+            {
+                // Clear existing sources and add in-memory test config
+                config.Sources.Clear();
+                var inMemoryConfig = new Dictionary<string, string>
+                {
+                    // Encryption settings
+                    { "Encryption:Key", _testKey },
+                    { "Encryption:IV", _testIV },
+
+                    // JWT settings (use dummy values for testing)
+                    { "Jwt:Secret", "test-secret-key-that-is-long-enough-for-testing-purposes-at-least-32-chars" },
+                    { "Jwt:Issuer", "TestIssuer" },
+                    { "Jwt:Audience", "TestAudience" },
+                    { "Jwt:ExpiryMinutes", "60" },
+
+                    // Connection string (not actually used since we use InMemory)
+                    { "ConnectionStrings:DefaultConnection", "Server=.;Database=TestDb;Trusted_Connection=true;" }
+                };
+                config.AddInMemoryCollection(inMemoryConfig);
+            });
+
             builder.ConfigureServices(services =>
             {
                 // Replace authentication with test scheme
@@ -54,8 +108,8 @@ namespace NobleBank.API.Tests.Integration
                 }).AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", _ => { });
 
                 // Replace DB with InMemory for end-to-end happy path
-                var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
-                if (descriptor != null) services.Remove(descriptor);
+                var dbDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
+                if (dbDescriptor != null) services.Remove(dbDescriptor);
 
                 services.AddDbContext<ApplicationDbContext>(options =>
                     options.UseInMemoryDatabase("TestDb"));
