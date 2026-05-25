@@ -14,9 +14,7 @@ namespace NobleBank.API.Tests
             var httpContext = new DefaultHttpContext();
             if (userId is not null)
             {
-                httpContext.User = new ClaimsPrincipal(new ClaimsIdentity([
-                    new Claim(ClaimTypes.NameIdentifier, userId)
-                ], "TestAuth"));
+                httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new Claim(ClaimTypes.NameIdentifier, userId) }, "TestAuth"));
             }
             else
             {
@@ -52,7 +50,7 @@ namespace NobleBank.API.Tests
                 _handler = handler ?? (_ => null);
             }
 
-            public List<object> Requests { get; } = [];
+            public List<object> Requests { get; } = new List<object>();
 
             public Task Publish(object notification, CancellationToken cancellationToken = default) => Task.CompletedTask;
 
