@@ -20,7 +20,7 @@ namespace NobleBank.Application.Features.Admin.Commands.RejectCard
         {
             if (string.IsNullOrEmpty(request.AdminUserId))
             {
-                throw new UnauthorizedAccessException(Constants.Exceptions.UserNotFound);
+                throw new UnauthorizedAccessException(Constants.Requirements.UserIdRequired);
             }
 
             Card? card = await _context.Cards

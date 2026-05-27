@@ -20,7 +20,7 @@ namespace NobleBank.Application.Features.Admin.Commands.RejectLoan
         {
             if (string.IsNullOrEmpty(request.AdminUserId))
             {
-                throw new UnauthorizedAccessException(Constants.Exceptions.UserNotFound);
+                throw new UnauthorizedAccessException(Constants.Requirements.UserIdRequired);
             }
 
             Loan? loan = await _context.Loans

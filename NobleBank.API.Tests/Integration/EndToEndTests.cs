@@ -1,10 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using NobleBank.Domain.Common;
-using NobleBank.Domain.Entities;
-using Xunit;
 
 namespace NobleBank.API.Tests.Integration
 {

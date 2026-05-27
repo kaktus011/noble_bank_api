@@ -8,13 +8,16 @@ namespace NobleBank.Infrastructure.Identity
     public class IdentityService : IIdentityService
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
 
         public IdentityService(
             UserManager<ApplicationUser> userManager,
+            RoleManager<IdentityRole> roleManager,
             SignInManager<ApplicationUser> signInManager)
         {
             _userManager = userManager;
+            _roleManager = roleManager;
             _signInManager = signInManager;
         }
 
@@ -26,6 +29,11 @@ namespace NobleBank.Infrastructure.Identity
             if (existingUser is not null)
             {
                 return (false, string.Empty, Constants.Exceptions.EmailAlreadyRegistered);
+            }
+
+            if (!await _roleManager.RoleExistsAsync(Roles.User))
+            {
+                return (false, string.Empty, $"Default role '{Roles.User}' is not configured.");
             }
 
             ApplicationUser user = new()
@@ -49,7 +57,16 @@ namespace NobleBank.Infrastructure.Identity
 
             if (!roleResult.Succeeded)
             {
+                IdentityResult deleteResult = await _userManager.DeleteAsync(user);
+
                 string roleErrors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
+
+                if (!deleteResult.Succeeded)
+                {
+                    string deleteErrors = string.Join(", ", deleteResult.Errors.Select(e => e.Description));
+
+                    return (false, string.Empty, $"{roleErrors}. Rollback failed: {deleteErrors}");
+                }
 
                 return (false, string.Empty, roleErrors);
             }

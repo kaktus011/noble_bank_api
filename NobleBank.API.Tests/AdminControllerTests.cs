@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NobleBank.API.Controllers;
 using NobleBank.Domain.Common;
-using Xunit;
 
 namespace NobleBank.API.Tests
 {

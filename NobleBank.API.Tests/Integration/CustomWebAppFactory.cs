@@ -4,12 +4,11 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NobleBank.Infrastructure.Persistence;
-using NobleBank.Infrastructure.Settings;
 using System.Security.Claims;
+using System.Security.Cryptography;
 
 namespace NobleBank.API.Tests.Integration
 {
@@ -26,31 +25,25 @@ namespace NobleBank.API.Tests.Integration
             var rolesHeader = Context.Request.Headers["X-Test-Roles"].ToString();
 
             if (string.IsNullOrEmpty(userHeader))
-                return Task.FromResult(AuthenticateResult.NoResult());
-
-            var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, userHeader) };
-            if (!string.IsNullOrEmpty(rolesHeader))
             {
-                foreach (var r in rolesHeader.Split(',')) claims.Add(new Claim(ClaimTypes.Role, r.Trim()));
+                return Task.FromResult(AuthenticateResult.NoResult());
             }
 
-            var identity = new ClaimsIdentity(claims, "Test");
-            var principal = new ClaimsPrincipal(identity);
-            var ticket = new AuthenticationTicket(principal, "Test");
+            List<Claim> claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, userHeader) };
+
+            if (!string.IsNullOrEmpty(rolesHeader))
+            {
+                foreach (var r in rolesHeader.Split(','))
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, r.Trim()));
+                }
+            }
+
+            ClaimsIdentity identity = new ClaimsIdentity(claims, "Test");
+            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+            AuthenticationTicket ticket = new AuthenticationTicket(principal, "Test");
 
             return Task.FromResult(AuthenticateResult.Success(ticket));
-        }
-    }
-
-    /// <summary>
-    /// Configures test encryption settings to satisfy validation without requiring real secrets.
-    /// </summary>
-    public class TestEncryptionSettingsConfigurator : IConfigureOptions<EncryptionSettings>
-    {
-        public void Configure(EncryptionSettings options)
-        {
-            // This won't work because properties are init-only.
-            // Instead, we'll remove and re-add the options below.
         }
     }
 
@@ -62,7 +55,7 @@ namespace NobleBank.API.Tests.Integration
         public CustomWebAppFactory()
         {
             // Generate valid test encryption keys once for the factory lifetime
-            using (var aes = System.Security.Cryptography.Aes.Create())
+            using (Aes aes = System.Security.Cryptography.Aes.Create())
             {
                 aes.GenerateKey();
                 aes.GenerateIV();
@@ -80,7 +73,8 @@ namespace NobleBank.API.Tests.Integration
             {
                 // Clear existing sources and add in-memory test config
                 config.Sources.Clear();
-                var inMemoryConfig = new Dictionary<string, string>
+
+                Dictionary<string, string> inMemoryConfig = new Dictionary<string, string>
                 {
                     // Encryption settings
                     { "Encryption:Key", _testKey },
@@ -100,6 +94,7 @@ namespace NobleBank.API.Tests.Integration
                     // Connection string (not actually used since we use InMemory)
                     { "ConnectionStrings:DefaultConnection", "Server=.;Database=TestDb;Trusted_Connection=true;" }
                 };
+
                 config.AddInMemoryCollection(inMemoryConfig);
             });
 
@@ -114,18 +109,22 @@ namespace NobleBank.API.Tests.Integration
 
                 // Replace DB with InMemory for end-to-end happy path
 
-                var dbDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
-                if (dbDescriptor != null) services.Remove(dbDescriptor);
+                ServiceDescriptor? dbDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
+
+                if (dbDescriptor != null)
+                {
+                    services.Remove(dbDescriptor);
+                }
 
                 services.AddDbContext<ApplicationDbContext>(options =>
                     options.UseInMemoryDatabase("TestDb"));
 
 
-                using (var serviceProvider = services.BuildServiceProvider())
+                using (ServiceProvider serviceProvider = services.BuildServiceProvider())
                 {
-                    using (var scope = serviceProvider.CreateScope())
+                    using (IServiceScope scope = serviceProvider.CreateScope())
                     {
-                        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                        ApplicationDbContext db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                         db.Database.EnsureDeleted();
                         db.Database.EnsureCreated();
                     }
@@ -139,8 +138,8 @@ namespace NobleBank.API.Tests.Integration
         /// </summary>
         public void ResetDatabase()
         {
-            using var scope = Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            using IServiceScope scope = Services.CreateScope();
+            ApplicationDbContext db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             db.Database.EnsureDeleted();
             db.Database.EnsureCreated();
         }
