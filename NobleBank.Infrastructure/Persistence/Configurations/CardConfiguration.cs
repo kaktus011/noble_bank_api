@@ -73,6 +73,10 @@ namespace NobleBank.Infrastructure.Persistence.Configurations
                 .HasColumnType("datetime2")
                 .IsRequired();
 
+            builder.Property(c => c.RejectionReason)
+                .HasColumnType("nvarchar(500)")
+                .IsRequired(false);
+
             // --- Релация с User ---
             builder.HasOne(c => c.User)
                 .WithMany(u => u.Cards)

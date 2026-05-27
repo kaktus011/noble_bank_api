@@ -23,7 +23,9 @@ public class RequestLoanCommandHandler : IRequestHandler<RequestLoanCommand, Loa
     public async Task<LoanDto> Handle(RequestLoanCommand request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(request.UserId))
+        {
             throw new UnauthorizedAccessException("User ID is required");
+        }
 
         ApplicationUser? user = await _context.Users.FirstOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);
 
@@ -50,10 +52,6 @@ public class RequestLoanCommandHandler : IRequestHandler<RequestLoanCommand, Loa
             userId: request.UserId,
             createdBy: request.UserId
         );
-
-        // loan.Approve();
-        // Keep newly requested loans in their initial Pending state.
-        // Approval should happen through a separate explicit workflow.
 
         _context.Loans.Add(loan);
         await _context.SaveChangesAsync(cancellationToken);

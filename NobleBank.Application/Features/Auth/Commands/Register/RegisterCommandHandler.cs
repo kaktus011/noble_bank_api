@@ -27,7 +27,7 @@ namespace NobleBank.Application.Features.Auth.Commands.Register
                 return new AuthResult(false, null, error);
             }
 
-            string token = _tokenService.GenerateToken(
+            string token = await _tokenService.GenerateToken(
                 userId,
                 request.Email,
                 $"{request.FirstName} {request.LastName}");

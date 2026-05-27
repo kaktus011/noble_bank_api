@@ -51,8 +51,6 @@ namespace NobleBank.Application.Features.Cards.Commands.RequestCard
                     creditLimit: request.CreditLimit
                 );
 
-                card.Activate(request.UserId);
-
                 _context.Cards.Add(card);
 
                 try
@@ -69,7 +67,7 @@ namespace NobleBank.Application.Features.Cards.Commands.RequestCard
                 }
             }
 
-            throw new InvalidOperationException("Could not generate a unique card number. Please try again.");
+            throw new InvalidOperationException(Constants.Exceptions.CardNumberGenerationFailed);
         }
 
         private async Task<string> GenerateUniqueCardNumberAsync(CardEnum.Brand brand, CancellationToken cancellationToken)

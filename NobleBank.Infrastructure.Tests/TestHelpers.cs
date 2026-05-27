@@ -1,5 +1,8 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Moq;
+using NobleBank.Domain.Entities;
 using NobleBank.Domain.Interfaces;
 using NobleBank.Infrastructure.Identity;
 using NobleBank.Infrastructure.Persistence;
@@ -31,7 +34,30 @@ namespace NobleBank.Infrastructure.Tests
                 ExpiryMinutes = 60
             });
 
-            return new TokenService(settings);
+            var store = new Mock<IUserStore<ApplicationUser>>();
+            var userManagerMock = new Mock<UserManager<ApplicationUser>>(store.Object, null, null, null, null, null, null, null, null);
+            userManagerMock.Setup(x => x.FindByIdAsync(It.IsAny<string>())).ReturnsAsync(new ApplicationUser());
+            userManagerMock.Setup(x => x.GetRolesAsync(It.IsAny<ApplicationUser>())).ReturnsAsync(new List<string> { "User" });
+
+            return new TokenService(settings, userManagerMock.Object);
+        }
+
+        public static TokenService CreateTokenServiceWithRoles(params string[] roles)
+        {
+            var settings = Options.Create(new JwtSettings
+            {
+                Secret = "super-secret-key-1234567890123456",
+                Issuer = "issuer",
+                Audience = "audience",
+                ExpiryMinutes = 60
+            });
+
+            var store = new Mock<IUserStore<ApplicationUser>>();
+            var userManagerMock = new Mock<UserManager<ApplicationUser>>(store.Object, null, null, null, null, null, null, null, null);
+            userManagerMock.Setup(x => x.FindByIdAsync(It.IsAny<string>())).ReturnsAsync(new ApplicationUser());
+            userManagerMock.Setup(x => x.GetRolesAsync(It.IsAny<ApplicationUser>())).ReturnsAsync(roles.ToList());
+
+            return new TokenService(settings, userManagerMock.Object);
         }
 
         public static ApplicationDbContext CreateDbContext(IEncryptionService encryption, MediatR.IMediator? mediator = null)
