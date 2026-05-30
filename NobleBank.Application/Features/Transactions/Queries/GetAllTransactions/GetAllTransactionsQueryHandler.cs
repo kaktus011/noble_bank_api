@@ -24,7 +24,7 @@ namespace NobleBank.Application.Features.Transactions.Queries.GetAllTransactions
             CancellationToken cancellationToken)
         {
             IQueryable<Transaction> query = _context.Transactions
-                .Where(t => t.Card.UserId == request.UserId);
+                .Where(t => request.UserId == null || t.Card.UserId == request.UserId);
 
             if (request.CardId.HasValue)
             {

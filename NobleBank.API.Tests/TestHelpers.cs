@@ -50,6 +50,7 @@ namespace NobleBank.API.Tests
                 _handler = handler ?? (_ => null);
             }
 
+            public object? Response { get; set; }
             public List<object> Requests { get; } = new List<object>();
 
             public Task Publish(object notification, CancellationToken cancellationToken = default) => Task.CompletedTask;
@@ -59,6 +60,10 @@ namespace NobleBank.API.Tests
             public Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
             {
                 Requests.Add(request!);
+                if (Response is TResponse typedResponse)
+                {
+                    return Task.FromResult(typedResponse);
+                }
                 var response = _handler(request!);
                 return Task.FromResult((TResponse?)response!);
             }

@@ -21,7 +21,7 @@ namespace NobleBank.Application.Features.Cards.Queries.GetCardById
         public async Task<CardDto?> Handle(GetCardByIdQuery request, CancellationToken cancellationToken)
         {
             CardDto? card = await _context.Cards
-                .Where(c => c.Id == request.CardId && c.UserId == request.UserId)
+                .Where(c => c.Id == request.CardId && (request.UserId == null || c.UserId == request.UserId))
                 .AsNoTracking()
                 .ProjectTo<CardDto>(_mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync(cancellationToken);
