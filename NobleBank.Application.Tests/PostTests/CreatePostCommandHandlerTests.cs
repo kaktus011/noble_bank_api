@@ -62,5 +62,34 @@ namespace NobleBank.Application.Tests.PostTests
             var exception = await Assert.ThrowsAsync<NotFoundException>(() => handler.Handle(command, CancellationToken.None));
             Assert.Equal("User not found", exception.Message);
         }
+
+        [Fact]
+        public async Task Handle_WithHtmlInContent_ShouldStripHtmlTagsBeforeSaving()
+        {
+            // Arrange
+            using var context = TestHelpers.CreateDbContext();
+            var userId = "user-1";
+            context.Users.Add(TestHelpers.CreateUser(userId));
+            await context.SaveChangesAsync();
+
+            var handler = new CreatePostCommandHandler(context, TestHelpers.CreateMapper());
+            var command = new CreatePostCommand(
+                userId,
+                "Hello <b>World</b>",
+                "Click <a href='x'>here</a><script>alert('xss')</script>"
+            );
+
+            // Act
+            var result = await handler.Handle(command, CancellationToken.None);
+
+            // Assert
+            Assert.Equal("Hello World", result.Title);
+            Assert.Equal("Click herealert('xss')", result.Body);
+
+            var postInDb = await context.Posts.FindAsync(result.Id);
+            Assert.NotNull(postInDb);
+            Assert.Equal("Hello World", postInDb.Title);
+            Assert.Equal("Click herealert('xss')", postInDb.Body);
+        }
     }
 }

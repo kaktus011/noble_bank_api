@@ -78,7 +78,7 @@ namespace NobleBank.Application.Tests.PostTests
         public void Validate_WithBodyTooLong_ShouldHaveError()
         {
             // Arrange
-            var command = new CreatePostCommand("user-1", "Valid Title", new string('a', 5001));
+            var command = new CreatePostCommand("user-1", "Valid Title", new string('a', 501));
 
             // Act
             var result = _validator.TestValidate(command);

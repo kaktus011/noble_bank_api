@@ -23,7 +23,6 @@ namespace NobleBank.API.Tests
         public async Task GetAll_ShouldReturnOkWithPosts()
         {
             // Arrange
-            var userId = "user-1";
             var expectedPosts = new List<PostDto>
             {
                 new() { Id = Guid.NewGuid(), Title = "Post 1", Body = "Body 1", CreatedAt = DateTime.UtcNow },
@@ -31,7 +30,7 @@ namespace NobleBank.API.Tests
             };
 
             var mediator = new TestHelpers.RecordingMediator(_ => expectedPosts);
-            var controller = new PostsController(mediator) { ControllerContext = TestHelpers.CreateControllerContext(userId) };
+            var controller = new PostsController(mediator) { ControllerContext = TestHelpers.CreateControllerContext("user-1") };
 
             // Act
             var result = await controller.GetAll();
@@ -42,33 +41,18 @@ namespace NobleBank.API.Tests
             Assert.Equal(2, actualPosts.Count);
 
             var request = Assert.Single(mediator.Requests);
-            var query = Assert.IsType<GetAllPostsQuery>(request);
-            Assert.Equal(userId, query.UserId);
-        }
-
-        [Fact]
-        public async Task GetAll_WhenUserIdIsNullOrWhiteSpace_ShouldReturnUnauthorized()
-        {
-            // Arrange
-            var controller = CreateController(string.Empty);
-
-            // Act
-            var result = await controller.GetAll();
-
-            // Assert
-            Assert.IsType<UnauthorizedResult>(result.Result);
+            Assert.IsType<GetAllPostsQuery>(request);
         }
 
         [Fact]
         public async Task GetById_WhenPostExists_ShouldReturnOk()
         {
             // Arrange
-            var userId = "user-1";
             var postId = Guid.NewGuid();
             var expectedPost = new PostDto { Id = postId, Title = "Post 1", Body = "Body 1" };
 
             var mediator = new TestHelpers.RecordingMediator(_ => expectedPost);
-            var controller = new PostsController(mediator) { ControllerContext = TestHelpers.CreateControllerContext(userId) };
+            var controller = new PostsController(mediator) { ControllerContext = TestHelpers.CreateControllerContext("user-1") };
 
             // Act
             var result = await controller.GetById(postId);
@@ -81,34 +65,17 @@ namespace NobleBank.API.Tests
             var request = Assert.Single(mediator.Requests);
             var query = Assert.IsType<GetPostByIdQuery>(request);
             Assert.Equal(postId, query.PostId);
-            Assert.Equal(userId, query.UserId);
-        }
-
-        [Fact]
-        public async Task GetById_WhenUserIdIsNullOrWhiteSpace_ShouldReturnUnauthorized()
-        {
-            // Arrange
-            var controller = CreateController(string.Empty);
-
-            // Act
-            var result = await controller.GetById(Guid.NewGuid());
-
-            // Assert
-            Assert.IsType<UnauthorizedResult>(result.Result);
         }
 
         [Fact]
         public async Task GetById_WhenPostNotFound_ShouldReturnNotFound()
         {
             // Arrange
-            var userId = "user-1";
-            var postId = Guid.NewGuid();
-
             var mediator = new TestHelpers.RecordingMediator(_ => null);
-            var controller = new PostsController(mediator) { ControllerContext = TestHelpers.CreateControllerContext(userId) };
+            var controller = new PostsController(mediator) { ControllerContext = TestHelpers.CreateControllerContext("user-1") };
 
             // Act
-            var result = await controller.GetById(postId);
+            var result = await controller.GetById(Guid.NewGuid());
 
             // Assert
             var notFoundResult = Assert.IsType<NotFoundObjectResult>(result.Result);
@@ -134,7 +101,7 @@ namespace NobleBank.API.Tests
             {
                 var cmd = request as CreatePostCommand;
                 Assert.NotNull(cmd);
-                Assert.Equal(userId, cmd.UserId); // Should enforce user id
+                Assert.Equal(userId, cmd.UserId);
                 return expectedPost;
             });
 

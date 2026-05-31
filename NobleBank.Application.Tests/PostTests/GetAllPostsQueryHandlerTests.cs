@@ -5,7 +5,7 @@ namespace NobleBank.Application.Tests.PostTests
     public class GetAllPostsQueryHandlerTests
     {
         [Fact]
-        public async Task Handle_WithUserHavingPosts_ShouldReturnPostsOrderedByDate()
+        public async Task Handle_WithPostsInDb_ShouldReturnPostsOrderedByDateDescending()
         {
             // Arrange
             using var context = TestHelpers.CreateDbContext();
@@ -22,36 +22,31 @@ namespace NobleBank.Application.Tests.PostTests
             await context.SaveChangesAsync();
 
             var handler = new GetAllPostsQueryHandler(context, TestHelpers.CreateMapper());
-            var query = new GetAllPostsQuery(userId);
 
             // Act
-            var result = await handler.Handle(query, CancellationToken.None);
+            var result = await handler.Handle(new GetAllPostsQuery(), CancellationToken.None);
 
             // Assert
             Assert.NotNull(result);
             Assert.Equal(3, result.Count);
-
-            // Check ordering
             Assert.Equal("Newest", result[0].Title);
             Assert.Equal("Middle", result[1].Title);
             Assert.Equal("Old", result[2].Title);
         }
 
         [Fact]
-        public async Task Handle_WithUserHavingNoPosts_ShouldReturnEmptyList()
+        public async Task Handle_WithNoPostsInDb_ShouldReturnEmptyList()
         {
             // Arrange
             using var context = TestHelpers.CreateDbContext();
-            var userId = "user-1";
-            var user = TestHelpers.CreateUser(userId);
+            var user = TestHelpers.CreateUser("user-1");
             context.Users.Add(user);
             await context.SaveChangesAsync();
 
             var handler = new GetAllPostsQueryHandler(context, TestHelpers.CreateMapper());
-            var query = new GetAllPostsQuery(userId);
 
             // Act
-            var result = await handler.Handle(query, CancellationToken.None);
+            var result = await handler.Handle(new GetAllPostsQuery(), CancellationToken.None);
 
             // Assert
             Assert.NotNull(result);
@@ -59,30 +54,25 @@ namespace NobleBank.Application.Tests.PostTests
         }
 
         [Fact]
-        public async Task Handle_ShouldOnlyReturnPostsForRequestedUser()
+        public async Task Handle_ShouldReturnAllPostsRegardlessOfAuthor()
         {
-            // Arrange
+            // Arrange — posts created by two different users (e.g. two admins)
             using var context = TestHelpers.CreateDbContext();
-            var userId1 = "user-1";
-            var userId2 = "user-2";
-            context.Users.Add(TestHelpers.CreateUser(userId1));
-            context.Users.Add(TestHelpers.CreateUser(userId2));
-
-            context.Posts.Add(TestHelpers.CreatePost(Guid.NewGuid(), userId1));
-            context.Posts.Add(TestHelpers.CreatePost(Guid.NewGuid(), userId2));
-            context.Posts.Add(TestHelpers.CreatePost(Guid.NewGuid(), userId1));
-
+            context.Users.Add(TestHelpers.CreateUser("user-1"));
+            context.Users.Add(TestHelpers.CreateUser("user-2"));
+            context.Posts.Add(TestHelpers.CreatePost(Guid.NewGuid(), "user-1"));
+            context.Posts.Add(TestHelpers.CreatePost(Guid.NewGuid(), "user-2"));
+            context.Posts.Add(TestHelpers.CreatePost(Guid.NewGuid(), "user-1"));
             await context.SaveChangesAsync();
 
             var handler = new GetAllPostsQueryHandler(context, TestHelpers.CreateMapper());
-            var query = new GetAllPostsQuery(userId1);
 
             // Act
-            var result = await handler.Handle(query, CancellationToken.None);
+            var result = await handler.Handle(new GetAllPostsQuery(), CancellationToken.None);
 
-            // Assert
+            // Assert — all 3 posts are visible (posts are global announcements)
             Assert.NotNull(result);
-            Assert.Equal(2, result.Count);
+            Assert.Equal(3, result.Count);
         }
     }
 }
