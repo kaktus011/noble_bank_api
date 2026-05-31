@@ -25,4 +25,6 @@ public record LoanDto
     public decimal ProgressPercentage { get; init; }
 
     public string? RejectionReason { get; init; }
+
+    public string UserId { get; init; } = string.Empty;
 }
