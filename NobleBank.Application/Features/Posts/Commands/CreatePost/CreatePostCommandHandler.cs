@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Text.RegularExpressions;
+using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using NobleBank.Application.Common.Exceptions;
@@ -35,8 +36,8 @@ namespace NobleBank.Application.Features.Posts.Commands.CreatePost
             }
 
             Post post = Post.Create(
-                title: request.Title,
-                body: request.Body,
+                title: StripHtml(request.Title),
+                body: StripHtml(request.Body),
                 userId: request.UserId,
                 createdBy: request.UserId
             );
@@ -45,6 +46,13 @@ namespace NobleBank.Application.Features.Posts.Commands.CreatePost
             await _context.SaveChangesAsync(cancellationToken);
 
             return _mapper.Map<PostDto>(post);
+        }
+
+        private static string StripHtml(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return input;
+            // Timeout guards against ReDoS on pathological input
+            return Regex.Replace(input, "<[^>]*>", string.Empty, RegexOptions.None, TimeSpan.FromMilliseconds(200));
         }
     }
 }

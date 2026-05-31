@@ -2,5 +2,5 @@
 
 namespace NobleBank.Application.Features.Posts.Queries.GetAllPosts
 {
-    public record GetAllPostsQuery(string UserId) : IRequest<List<PostDto>>;
+    public record GetAllPostsQuery : IRequest<List<PostDto>>;
 }

@@ -21,7 +21,7 @@ namespace NobleBank.Application.Features.Posts.Queries.GetPostById
         public async Task<PostDto?> Handle(GetPostByIdQuery request, CancellationToken cancellationToken)
         {
             return await _context.Posts
-                .Where(p => p.Id == request.PostId && p.UserId == request.UserId)
+                .Where(p => p.Id == request.PostId)
                 .ProjectTo<PostDto>(_mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync(cancellationToken);
         }
