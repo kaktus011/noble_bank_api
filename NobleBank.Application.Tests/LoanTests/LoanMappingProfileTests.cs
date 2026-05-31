@@ -28,6 +28,7 @@ namespace NobleBank.Application.Tests.LoanTests
 
             // Assert
             Assert.Equal(loan.Id, dto.Id);
+            Assert.Equal(loan.UserId, dto.UserId);
             Assert.Equal(10000m, dto.Amount);
             Assert.Equal(7500m, dto.RemainingAmount);
             Assert.Equal(5.5m, dto.InterestRate);
