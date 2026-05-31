@@ -14,6 +14,7 @@ public class LoanMappingProfile : Profile
             .ForMember(d => d.ProgressPercentage,
                 o => o.MapFrom(s => s.Amount == 0 ? 0 :
                     Math.Round((s.Amount - s.RemainingAmount) / s.Amount * 100, 2)))
-            .ForMember(d => d.RejectionReason, o => o.MapFrom(s => s.RejectionReason));
+            .ForMember(d => d.RejectionReason, o => o.MapFrom(s => s.RejectionReason))
+            .ForMember(d => d.UserId, o => o.MapFrom(s => s.UserId));
     }
 }
