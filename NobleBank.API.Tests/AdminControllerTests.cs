@@ -4,6 +4,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NobleBank.API.Controllers;
 using NobleBank.Domain.Common;
+using NobleBank.Application.Features.Admin.Queries.GetPendingCards;
+using NobleBank.Application.Features.Cards.Queries.GetAllCards;
+using NobleBank.Application.Features.Cards.Queries.GetCardById;
+using NobleBank.Application.Features.Admin.Queries.GetPendingLoans;
+using NobleBank.Application.Features.Loans.Queries.GetAllLoans;
+using NobleBank.Application.Features.Loans.Queries.GetLoanById;
+using NobleBank.Application.Features.Transactions.Queries.GetAllTransactions;
+using NobleBank.Application.Features.Transactions.Queries.GetTransactionById;
 
 namespace NobleBank.API.Tests
 {
@@ -18,6 +26,79 @@ namespace NobleBank.API.Tests
 
             Assert.NotNull(attr);
             Assert.Equal(Roles.Administrator, attr!.Roles);
+        }
+
+        // ===== CARDS =====
+
+        [Fact]
+        public async Task GetAllCards_WhenCalled_SendsGetAllCardsQuery()
+        {
+            // Arrange
+            var mediator = new TestHelpers.RecordingMediator();
+            var controller = new AdminController(mediator);
+
+            // Act
+            await controller.GetAllCards();
+
+            // Assert
+            Assert.Single(mediator.Requests);
+            var req = mediator.Requests[0];
+            Assert.IsType<GetAllCardsQuery>(req);
+            var query = (GetAllCardsQuery)req;
+            Assert.Null(query.UserId);
+        }
+
+        [Fact]
+        public async Task GetCardById_WhenCardExists_SendsGetCardByIdQueryAndReturnsOk()
+        {
+            // Arrange
+            var mediator = new TestHelpers.RecordingMediator();
+            var cardId = Guid.NewGuid();
+            mediator.Response = new CardDto { Id = cardId };
+            var controller = new AdminController(mediator);
+
+            // Act
+            var result = await controller.GetCardById(cardId);
+
+            // Assert
+            Assert.Single(mediator.Requests);
+            var req = mediator.Requests[0];
+            Assert.IsType<GetCardByIdQuery>(req);
+            var query = (GetCardByIdQuery)req;
+            Assert.Equal(cardId, query.CardId);
+            Assert.Null(query.UserId);
+            Assert.IsType<OkObjectResult>(result.Result);
+        }
+
+        [Fact]
+        public async Task GetCardById_WhenCardDoesNotExist_ReturnsNotFound()
+        {
+            // Arrange
+            var mediator = new TestHelpers.RecordingMediator();
+            mediator.Response = null;
+            var controller = new AdminController(mediator);
+            var cardId = Guid.NewGuid();
+
+            // Act
+            var result = await controller.GetCardById(cardId);
+
+            // Assert
+            Assert.IsType<NotFoundResult>(result.Result);
+        }
+
+        [Fact]
+        public async Task GetPendingCards_WhenCalled_SendsGetPendingCardsQuery()
+        {
+            // Arrange
+            var mediator = new TestHelpers.RecordingMediator();
+            var controller = new AdminController(mediator);
+
+            // Act
+            await controller.GetPendingCards();
+
+            // Assert
+            Assert.Single(mediator.Requests);
+            Assert.IsType<GetPendingCardsQuery>(mediator.Requests[0]);
         }
 
         [Fact]
@@ -68,6 +149,79 @@ namespace NobleBank.API.Tests
             Assert.Equal(request.Reason, cmd.Reason);
         }
 
+        // ===== LOANS =====
+
+        [Fact]
+        public async Task GetAllLoans_WhenCalled_SendsGetAllLoansQuery()
+        {
+            // Arrange
+            var mediator = new TestHelpers.RecordingMediator();
+            var controller = new AdminController(mediator);
+
+            // Act
+            await controller.GetAllLoans();
+
+            // Assert
+            Assert.Single(mediator.Requests);
+            var req = mediator.Requests[0];
+            Assert.IsType<GetAllLoansQuery>(req);
+            var query = (GetAllLoansQuery)req;
+            Assert.Null(query.UserId);
+        }
+
+        [Fact]
+        public async Task GetLoanById_WhenLoanExists_SendsGetLoanByIdQueryAndReturnsOk()
+        {
+            // Arrange
+            var mediator = new TestHelpers.RecordingMediator();
+            var loanId = Guid.NewGuid();
+            mediator.Response = new LoanDto { Id = loanId };
+            var controller = new AdminController(mediator);
+
+            // Act
+            var result = await controller.GetLoanById(loanId);
+
+            // Assert
+            Assert.Single(mediator.Requests);
+            var req = mediator.Requests[0];
+            Assert.IsType<GetLoanByIdQuery>(req);
+            var query = (GetLoanByIdQuery)req;
+            Assert.Equal(loanId, query.LoanId);
+            Assert.Null(query.UserId);
+            Assert.IsType<OkObjectResult>(result.Result);
+        }
+
+        [Fact]
+        public async Task GetLoanById_WhenLoanDoesNotExist_ReturnsNotFound()
+        {
+            // Arrange
+            var mediator = new TestHelpers.RecordingMediator();
+            mediator.Response = null;
+            var controller = new AdminController(mediator);
+            var loanId = Guid.NewGuid();
+
+            // Act
+            var result = await controller.GetLoanById(loanId);
+
+            // Assert
+            Assert.IsType<NotFoundResult>(result.Result);
+        }
+
+        [Fact]
+        public async Task GetPendingLoans_WhenCalled_SendsGetPendingLoansQuery()
+        {
+            // Arrange
+            var mediator = new TestHelpers.RecordingMediator();
+            var controller = new AdminController(mediator);
+
+            // Act
+            await controller.GetPendingLoans();
+
+            // Assert
+            Assert.Single(mediator.Requests);
+            Assert.IsType<GetPendingLoansQuery>(mediator.Requests[0]);
+        }
+
         [Fact]
         public async Task ApproveLoan_WhenCalled_ByAdmin_SendsApproveLoanCommand()
         {
@@ -114,6 +268,66 @@ namespace NobleBank.API.Tests
             Assert.Equal(userId, cmd.AdminUserId);
             Assert.Equal(loanId, cmd.LoanId);
             Assert.Equal(request.Reason, cmd.Reason);
+        }
+
+        // ===== TRANSACTIONS =====
+
+        [Fact]
+        public async Task GetAllTransactions_WhenCalled_SendsGetAllTransactionsQuery()
+        {
+            // Arrange
+            var mediator = new TestHelpers.RecordingMediator();
+            var controller = new AdminController(mediator);
+
+            // Act
+            await controller.GetAllTransactions();
+
+            // Assert
+            Assert.Single(mediator.Requests);
+            var req = mediator.Requests[0];
+            Assert.IsType<GetAllTransactionsQuery>(req);
+            var query = (GetAllTransactionsQuery)req;
+            Assert.Null(query.UserId);
+            Assert.Null(query.CardId);
+            Assert.Equal(50, query.Limit);
+        }
+
+        [Fact]
+        public async Task GetTransactionById_WhenTransactionExists_SendsGetTransactionByIdQueryAndReturnsOk()
+        {
+            // Arrange
+            var mediator = new TestHelpers.RecordingMediator();
+            var transactionId = Guid.NewGuid();
+            mediator.Response = new TransactionDto { Id = transactionId };
+            var controller = new AdminController(mediator);
+
+            // Act
+            var result = await controller.GetTransactionById(transactionId);
+
+            // Assert
+            Assert.Single(mediator.Requests);
+            var req = mediator.Requests[0];
+            Assert.IsType<GetTransactionByIdQuery>(req);
+            var query = (GetTransactionByIdQuery)req;
+            Assert.Equal(transactionId, query.TransactionId);
+            Assert.Null(query.UserId);
+            Assert.IsType<OkObjectResult>(result.Result);
+        }
+
+        [Fact]
+        public async Task GetTransactionById_WhenTransactionDoesNotExist_ReturnsNotFound()
+        {
+            // Arrange
+            var mediator = new TestHelpers.RecordingMediator();
+            mediator.Response = null;
+            var controller = new AdminController(mediator);
+            var transactionId = Guid.NewGuid();
+
+            // Act
+            var result = await controller.GetTransactionById(transactionId);
+
+            // Assert
+            Assert.IsType<NotFoundResult>(result.Result);
         }
 
         private static ControllerContext CreateControllerContextWithRole(string userId, string role)

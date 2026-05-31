@@ -20,7 +20,7 @@ namespace NobleBank.Application.Features.Cards.Queries.GetAllCards
         public async Task<List<CardDto>> Handle(GetAllCardsQuery request, CancellationToken cancellationToken)
         {
             return await _context.Cards
-                .Where(c => c.UserId == request.UserId)
+                .Where(c => request.UserId == null || c.UserId == request.UserId)
                 .OrderByDescending(c => c.CreatedAt)
                 .ProjectTo<CardDto>(_mapper.ConfigurationProvider)
                 .ToListAsync(cancellationToken);

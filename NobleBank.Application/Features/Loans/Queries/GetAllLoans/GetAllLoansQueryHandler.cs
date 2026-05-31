@@ -20,7 +20,7 @@ public class GetAllLoansQueryHandler : IRequestHandler<GetAllLoansQuery, List<Lo
     public async Task<List<LoanDto>> Handle(GetAllLoansQuery request, CancellationToken cancellationToken)
     {
         return await _context.Loans
-            .Where(l => l.UserId == request.UserId)
+            .Where(l => request.UserId == null || l.UserId == request.UserId)
             .OrderByDescending(l => l.CreatedAt)
             .ProjectTo<LoanDto>(_mapper.ConfigurationProvider)
             .ToListAsync(cancellationToken);

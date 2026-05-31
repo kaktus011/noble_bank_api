@@ -21,7 +21,7 @@ public class GetLoanByIdQueryHandler : IRequestHandler<GetLoanByIdQuery, LoanDto
     public async Task<LoanDto?> Handle(GetLoanByIdQuery request, CancellationToken cancellationToken)
     {
         return await _context.Loans
-            .Where(l => l.Id == request.LoanId && l.UserId == request.UserId)
+            .Where(l => l.Id == request.LoanId && (request.UserId == null || l.UserId == request.UserId))
             .ProjectTo<LoanDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(cancellationToken);
     }
