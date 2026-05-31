@@ -20,7 +20,6 @@ namespace NobleBank.Application.Features.Posts.Queries.GetAllPosts
         public async Task<List<PostDto>> Handle(GetAllPostsQuery request, CancellationToken cancellationToken)
         {
             return await _context.Posts
-                .Where(p => p.UserId == request.UserId)
                 .OrderByDescending(p => p.CreatedAt)
                 .ProjectTo<PostDto>(_mapper.ConfigurationProvider)
                 .ToListAsync(cancellationToken);

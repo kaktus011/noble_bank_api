@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NobleBank.Application.Features.Posts.Commands.CreatePost;
@@ -9,7 +9,7 @@ using NobleBank.Domain.Common;
 
 namespace NobleBank.API.Controllers
 {
-    [Authorize(Roles = Roles.Administrator)]
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class PostsController : BaseController
@@ -24,12 +24,7 @@ namespace NobleBank.API.Controllers
         [HttpGet]
         public async Task<ActionResult<List<PostDto>>> GetAll()
         {
-            if (string.IsNullOrWhiteSpace(UserId))
-            {
-                return Unauthorized();
-            }
-
-            List<PostDto> posts = await _mediator.Send(new GetAllPostsQuery(UserId));
+            List<PostDto> posts = await _mediator.Send(new GetAllPostsQuery());
 
             return Ok(posts);
         }
@@ -37,12 +32,7 @@ namespace NobleBank.API.Controllers
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<PostDto>> GetById(Guid id)
         {
-            if (string.IsNullOrWhiteSpace(UserId))
-            {
-                return Unauthorized();
-            }
-
-            PostDto? post = await _mediator.Send(new GetPostByIdQuery(id, UserId));
+            PostDto? post = await _mediator.Send(new GetPostByIdQuery(id));
 
             if (post is null)
             {
@@ -52,6 +42,7 @@ namespace NobleBank.API.Controllers
             return Ok(post);
         }
 
+        [Authorize(Roles = Roles.Administrator)]
         [HttpPost]
         public async Task<ActionResult<PostDto>> Create([FromBody] CreatePostCommand command)
         {
@@ -67,6 +58,7 @@ namespace NobleBank.API.Controllers
             return CreatedAtAction(nameof(GetById), new { id = post.Id }, post);
         }
 
+        [Authorize(Roles = Roles.Administrator)]
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {

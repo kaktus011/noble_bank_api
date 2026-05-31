@@ -13,7 +13,7 @@ namespace NobleBank.Application.Features.Posts.Commands.CreatePost
 
             RuleFor(x => x.Body)
                 .NotEmpty().WithMessage(Constants.Requirements.PostBodyRequired)
-                .MaximumLength(5000).WithMessage(Constants.Requirements.PostBodyMaxLength);
+                .MaximumLength(500).WithMessage(Constants.Requirements.PostBodyMaxLength);
         }
     }
 }
