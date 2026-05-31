@@ -289,7 +289,7 @@ namespace NobleBank.API.Tests
             var query = (GetAllTransactionsQuery)req;
             Assert.Null(query.UserId);
             Assert.Null(query.CardId);
-            Assert.Equal(200, query.Limit);
+            Assert.Equal(50, query.Limit);
         }
 
         [Fact]
