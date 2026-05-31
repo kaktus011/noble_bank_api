@@ -34,7 +34,8 @@ namespace NobleBank.API.Controllers
         [HttpGet("cards")]
         public async Task<ActionResult<List<CardDto>>> GetAllCards()
         {
-            var cards = await _mediator.Send(new GetAllCardsQuery(null));
+            List<CardDto> cards = await _mediator.Send(new GetAllCardsQuery(null));
+
             return Ok(cards);
         }
 
@@ -42,15 +43,20 @@ namespace NobleBank.API.Controllers
         public async Task<ActionResult<CardDto>> GetCardById(Guid id)
         {
             CardDto? card = await _mediator.Send(new GetCardByIdQuery(id, null));
+
             if (card is null)
+            {
                 return NotFound();
+            }
+
             return Ok(card);
         }
 
         [HttpGet("cards/pending")]
         public async Task<ActionResult<List<CardDto>>> GetPendingCards()
         {
-            var cards = await _mediator.Send(new GetPendingCardsQuery());
+            List<CardDto> cards = await _mediator.Send(new GetPendingCardsQuery());
+
             return Ok(cards);
         }
 
@@ -58,6 +64,7 @@ namespace NobleBank.API.Controllers
         public async Task<IActionResult> ApproveCard(Guid id)
         {
             await _mediator.Send(new ApproveCardCommand(UserId, id));
+
             return NoContent();
         }
 
@@ -65,6 +72,7 @@ namespace NobleBank.API.Controllers
         public async Task<IActionResult> RejectCard(Guid id, [FromBody] RejectRequest request)
         {
             await _mediator.Send(new RejectCardCommand(UserId, id, request.Reason));
+
             return NoContent();
         }
 
@@ -73,7 +81,8 @@ namespace NobleBank.API.Controllers
         [HttpGet("loans")]
         public async Task<ActionResult<List<LoanDto>>> GetAllLoans()
         {
-            var loans = await _mediator.Send(new GetAllLoansQuery(null));
+            List<LoanDto> loans = await _mediator.Send(new GetAllLoansQuery(null));
+
             return Ok(loans);
         }
 
@@ -81,15 +90,20 @@ namespace NobleBank.API.Controllers
         public async Task<ActionResult<LoanDto>> GetLoanById(Guid id)
         {
             LoanDto? loan = await _mediator.Send(new GetLoanByIdQuery(id, null));
+
             if (loan is null)
+            {
                 return NotFound();
+            }
+
             return Ok(loan);
         }
 
         [HttpGet("loans/pending")]
         public async Task<ActionResult<List<LoanDto>>> GetPendingLoans()
         {
-            var loans = await _mediator.Send(new GetPendingLoansQuery());
+            List<LoanDto> loans = await _mediator.Send(new GetPendingLoansQuery());
+
             return Ok(loans);
         }
 
@@ -97,6 +111,7 @@ namespace NobleBank.API.Controllers
         public async Task<IActionResult> ApproveLoan(Guid id)
         {
             await _mediator.Send(new ApproveLoanCommand(UserId, id));
+
             return NoContent();
         }
 
@@ -104,6 +119,7 @@ namespace NobleBank.API.Controllers
         public async Task<IActionResult> RejectLoan(Guid id, [FromBody] RejectRequest request)
         {
             await _mediator.Send(new RejectLoanCommand(UserId, id, request.Reason));
+
             return NoContent();
         }
 
@@ -112,7 +128,8 @@ namespace NobleBank.API.Controllers
         [HttpGet("transactions")]
         public async Task<ActionResult<List<TransactionDto>>> GetAllTransactions()
         {
-            var transactions = await _mediator.Send(new GetAllTransactionsQuery(null, null, 200));
+            List<TransactionDto> transactions = await _mediator.Send(new GetAllTransactionsQuery(null, null, 50));
+
             return Ok(transactions);
         }
 
@@ -120,8 +137,12 @@ namespace NobleBank.API.Controllers
         public async Task<ActionResult<TransactionDto>> GetTransactionById(Guid id)
         {
             TransactionDto? transaction = await _mediator.Send(new GetTransactionByIdQuery(id, null));
+
             if (transaction is null)
+            {
                 return NotFound();
+            }
+
             return Ok(transaction);
         }
     }
