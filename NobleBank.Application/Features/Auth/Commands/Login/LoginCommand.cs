@@ -4,5 +4,6 @@ namespace NobleBank.Application.Features.Auth.Commands.Login
 {
     public record LoginCommand(
         string Email,
-        string Password) : IRequest<AuthResult>;
+        string Password,
+        bool ForceLogin = false) : IRequest<AuthResult>;
 }

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using NobleBank.Application.Common.Interfaces;
 using NobleBank.Application.Features.Auth;
 using NobleBank.Application.Features.Auth.Commands.Login;
@@ -12,14 +12,9 @@ namespace NobleBank.Application.Tests
         [Fact]
         public void LoginCommandValidator_WithValidData_ShouldPass()
         {
-            // Arrange
             var validator = new LoginCommandValidator();
             var command = new LoginCommand("john.doe@example.com", "Password123!");
-
-            // Act
             var result = validator.Validate(command);
-
-            // Assert
             Assert.True(result.IsValid);
             Assert.Empty(result.Errors);
         }
@@ -27,14 +22,9 @@ namespace NobleBank.Application.Tests
         [Fact]
         public void RegisterCommandValidator_WithInvalidData_ShouldReturnErrors()
         {
-            // Arrange
             var validator = new RegisterCommandValidator();
             var command = new RegisterCommand("", "weak", "", "");
-
-            // Act
             var result = validator.Validate(command);
-
-            // Assert
             Assert.False(result.IsValid);
             Assert.Contains(result.Errors, x => x.PropertyName == nameof(RegisterCommand.Email));
             Assert.Contains(result.Errors, x => x.PropertyName == nameof(RegisterCommand.Password));
@@ -46,12 +36,14 @@ namespace NobleBank.Application.Tests
         public async Task RegisterCommandHandler_WhenRegistrationSucceeds_ShouldReturnToken()
         {
             // Arrange
-            var identityService = new FakeIdentityService
-            {
-                RegisterResult = (true, "user-1", null)
-            };
+            var identityService = new FakeIdentityService { RegisterResult = (true, "user-1", null) };
             var tokenService = new FakeTokenService { Token = "jwt-token" };
-            var handler = new RegisterCommandHandler(identityService, tokenService);
+            var context = CreateDbContext();
+            // Pre-populate the user the identity service "created"
+            context.Users.Add(new ApplicationUser { Id = "user-1", Email = "john.doe@example.com", FirstName = "John", LastName = "Doe" });
+            await context.SaveChangesAsync(CancellationToken.None);
+
+            var handler = new RegisterCommandHandler(identityService, tokenService, context);
             var command = new RegisterCommand("john.doe@example.com", "Password123!", "John", "Doe");
 
             // Act
@@ -62,18 +54,19 @@ namespace NobleBank.Application.Tests
             Assert.Equal("jwt-token", result.Token);
             Assert.Null(result.Error);
             Assert.Equal(("user-1", "john.doe@example.com", "John Doe"), tokenService.LastTokenRequest);
+            // SessionId should have been stamped on the user
+            var user = await context.Users.FirstAsync(u => u.Id == "user-1");
+            Assert.NotNull(user.SessionId);
         }
 
         [Fact]
         public async Task RegisterCommandHandler_WhenRegistrationFails_ShouldReturnFailureResult()
         {
             // Arrange
-            var identityService = new FakeIdentityService
-            {
-                RegisterResult = (false, null, "Email already exists")
-            };
+            var identityService = new FakeIdentityService { RegisterResult = (false, null, "Email already exists") };
             var tokenService = new FakeTokenService { Token = "jwt-token" };
-            var handler = new RegisterCommandHandler(identityService, tokenService);
+            var context = CreateDbContext();
+            var handler = new RegisterCommandHandler(identityService, tokenService, context);
             var command = new RegisterCommand("john.doe@example.com", "Password123!", "John", "Doe");
 
             // Act
@@ -86,22 +79,13 @@ namespace NobleBank.Application.Tests
         }
 
         [Fact]
-        public async Task LoginCommandHandler_WhenLoginSucceedsAndUserExists_ShouldReturnTokenWithStoredUserData()
+        public async Task LoginCommandHandler_WhenLoginSucceedsAndUserExists_ShouldReturnTokenAndSetSession()
         {
             // Arrange
-            var identityService = new FakeIdentityService
-            {
-                LoginResult = (true, "user-1", null)
-            };
+            var identityService = new FakeIdentityService { LoginResult = (true, "user-1", null) };
             var tokenService = new FakeTokenService { Token = "jwt-token" };
             var context = CreateDbContext();
-            context.Users.Add(new ApplicationUser
-            {
-                Id = "user-1",
-                Email = "stored@example.com",
-                FirstName = "John",
-                LastName = "Doe"
-            });
+            context.Users.Add(new ApplicationUser { Id = "user-1", Email = "stored@example.com", FirstName = "John", LastName = "Doe" });
             await context.SaveChangesAsync(CancellationToken.None);
 
             var handler = new LoginCommandHandler(identityService, tokenService, context);
@@ -115,16 +99,62 @@ namespace NobleBank.Application.Tests
             Assert.Equal("jwt-token", result.Token);
             Assert.Null(result.Error);
             Assert.Equal(("user-1", "stored@example.com", "John Doe"), tokenService.LastTokenRequest);
+            var user = await context.Users.FirstAsync(u => u.Id == "user-1");
+            Assert.NotNull(user.SessionId);
+        }
+
+        [Fact]
+        public async Task LoginCommandHandler_WhenActiveSessionExists_ShouldReturnHasActiveSession()
+        {
+            // Arrange
+            var identityService = new FakeIdentityService { LoginResult = (true, "user-1", null) };
+            var tokenService = new FakeTokenService { Token = "jwt-token" };
+            var context = CreateDbContext();
+            context.Users.Add(new ApplicationUser { Id = "user-1", Email = "stored@example.com", FirstName = "John", LastName = "Doe", SessionId = Guid.NewGuid() });
+            await context.SaveChangesAsync(CancellationToken.None);
+
+            var handler = new LoginCommandHandler(identityService, tokenService, context);
+            var command = new LoginCommand("john.doe@example.com", "Password123!"); // ForceLogin defaults to false
+
+            // Act
+            AuthResult result = await handler.Handle(command, CancellationToken.None);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.True(result.HasActiveSession);
+            Assert.Null(result.Token);
+        }
+
+        [Fact]
+        public async Task LoginCommandHandler_WhenForceLoginWithActiveSession_ShouldOverwriteSessionAndReturnToken()
+        {
+            // Arrange
+            var oldSessionId = Guid.NewGuid();
+            var identityService = new FakeIdentityService { LoginResult = (true, "user-1", null) };
+            var tokenService = new FakeTokenService { Token = "jwt-token" };
+            var context = CreateDbContext();
+            context.Users.Add(new ApplicationUser { Id = "user-1", Email = "stored@example.com", FirstName = "John", LastName = "Doe", SessionId = oldSessionId });
+            await context.SaveChangesAsync(CancellationToken.None);
+
+            var handler = new LoginCommandHandler(identityService, tokenService, context);
+            var command = new LoginCommand("john.doe@example.com", "Password123!", ForceLogin: true);
+
+            // Act
+            AuthResult result = await handler.Handle(command, CancellationToken.None);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.Equal("jwt-token", result.Token);
+            var user = await context.Users.FirstAsync(u => u.Id == "user-1");
+            Assert.NotNull(user.SessionId);
+            Assert.NotEqual(oldSessionId, user.SessionId); // session was rotated
         }
 
         [Fact]
         public async Task LoginCommandHandler_WhenLoginFails_ShouldReturnFailureResult()
         {
             // Arrange
-            var identityService = new FakeIdentityService
-            {
-                LoginResult = (false, null, "Invalid credentials")
-            };
+            var identityService = new FakeIdentityService { LoginResult = (false, null, "Invalid credentials") };
             var tokenService = new FakeTokenService { Token = "jwt-token" };
             var context = CreateDbContext();
             var handler = new LoginCommandHandler(identityService, tokenService, context);
@@ -144,7 +174,6 @@ namespace NobleBank.Application.Tests
             var options = new DbContextOptionsBuilder<TestApplicationDbContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .Options;
-
             return new TestApplicationDbContext(options);
         }
 
@@ -165,19 +194,18 @@ namespace NobleBank.Application.Tests
             public string Token { get; set; } = string.Empty;
             public (string UserId, string Email, string FullName)? LastTokenRequest { get; private set; }
 
-            public Task<string> GenerateToken(string userId, string email, string fullName)
+            public Task<string> GenerateToken(string userId, string email, string fullName, Guid sessionId)
             {
                 LastTokenRequest = (userId, email, fullName);
                 return Task.FromResult(Token);
             }
+
+            public string? GetUserIdFromToken(string token) => null;
         }
 
         private sealed class TestApplicationDbContext : DbContext, IApplicationDbContext
         {
-            public TestApplicationDbContext(DbContextOptions<TestApplicationDbContext> options)
-                : base(options)
-            {
-            }
+            public TestApplicationDbContext(DbContextOptions<TestApplicationDbContext> options) : base(options) { }
 
             public DbSet<Card> Cards => Set<Card>();
             public DbSet<Loan> Loans => Set<Loan>();

@@ -28,17 +28,27 @@ namespace NobleBank.Application.Features.Auth.Commands.Login
                 request.Password);
 
             if (!success)
-            {
                 return new AuthResult(false, null, error);
-            }
 
             ApplicationUser? user = await _context.Users
                 .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
+            if (user is null)
+                return new AuthResult(false, null, "User not found");
+
+            // Another session is active — ask the caller whether to force it out
+            if (user.SessionId.HasValue && !request.ForceLogin)
+                return new AuthResult(false, null, null, HasActiveSession: true);
+
+            // Stamp a new session (overwrites any stale one when ForceLogin == true)
+            user.SessionId = Guid.NewGuid();
+            await _context.SaveChangesAsync(cancellationToken);
+
             string token = await _tokenService.GenerateToken(
-                userId,
-                user?.Email ?? request.Email,
-                user?.FullName ?? string.Empty);
+                userId!,
+                user.Email ?? request.Email,
+                user.FullName,
+                user.SessionId!.Value);
 
             return new AuthResult(true, token, null);
         }

@@ -23,7 +23,20 @@ namespace NobleBank.Infrastructure.Identity
             _userManager = userManager;
         }
 
-        public async Task<string> GenerateToken(string userId, string email, string fullName)
+        public string? GetUserIdFromToken(string token)
+        {
+            try
+            {
+                var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
+                return jwt.Subject; // the 'sub' claim
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public async Task<string> GenerateToken(string userId, string email, string fullName, Guid sessionId)
         {
             ApplicationUser? user = await _userManager.FindByIdAsync(userId);
 
@@ -39,7 +52,8 @@ namespace NobleBank.Infrastructure.Identity
                 new(JwtRegisteredClaimNames.Sub, userId),
                 new(JwtRegisteredClaimNames.Email, email),
                 new(JwtRegisteredClaimNames.Name, fullName),
-                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new("sid", sessionId.ToString())
             };
 
             foreach (string role in roles)

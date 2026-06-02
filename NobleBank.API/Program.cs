@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using NobleBank.API.Filters;
 using NobleBank.API.Middleware;
 using NobleBank.Application;
 using NobleBank.Infrastructure;
@@ -16,7 +17,9 @@ namespace NobleBank.API
         {
             WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddControllers();
+            builder.Services.AddScoped<SessionValidationFilter>();
+            builder.Services.AddControllers(options =>
+                options.Filters.AddService<SessionValidationFilter>());
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(options =>
             {
