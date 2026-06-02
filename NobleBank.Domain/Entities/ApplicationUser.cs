@@ -15,5 +15,8 @@ namespace NobleBank.Domain.Entities
         public ICollection<Loan> Loans { get; set; } = [];
 
         public ICollection<Post> Posts { get; set; } = [];
+
+        /// <summary>Non-null while this user has an active login session.</summary>
+        public Guid? SessionId { get; set; }
     }
 }

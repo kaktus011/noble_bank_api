@@ -23,7 +23,43 @@ namespace NobleBank.Infrastructure.Identity
             _userManager = userManager;
         }
 
-        public async Task<string> GenerateToken(string userId, string email, string fullName)
+        public string? GetUserIdFromToken(string token)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return null;
+            }
+            
+            try
+            {
+                token = token.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+                    ? token["Bearer ".Length..].Trim()
+                    : token.Trim();
+
+                TokenValidationParameters parameters = new()
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Secret)),
+                    ValidateIssuer = true,
+                    ValidIssuer = _settings.Issuer,
+                    ValidateAudience = true,
+                    ValidAudience = _settings.Audience,
+                    // Allow logout even if the access token is already expired.
+                    ValidateLifetime = false
+                };
+
+                ClaimsPrincipal principal = new JwtSecurityTokenHandler().ValidateToken(token, parameters, out _);
+
+                return principal.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                       ?? principal.FindFirstValue(ClaimTypes.NameIdentifier);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public async Task<string> GenerateToken(string userId, string email, string fullName, Guid sessionId)
         {
             ApplicationUser? user = await _userManager.FindByIdAsync(userId);
 
@@ -39,7 +75,8 @@ namespace NobleBank.Infrastructure.Identity
                 new(JwtRegisteredClaimNames.Sub, userId),
                 new(JwtRegisteredClaimNames.Email, email),
                 new(JwtRegisteredClaimNames.Name, fullName),
-                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new("sid", sessionId.ToString())
             };
 
             foreach (string role in roles)

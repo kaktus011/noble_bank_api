@@ -3,7 +3,6 @@ using System.Security.Claims;
 
 namespace NobleBank.Infrastructure.Tests
 {
-
     public class TokenServiceTests
     {
         [Fact]
@@ -11,9 +10,10 @@ namespace NobleBank.Infrastructure.Tests
         {
             // Arrange
             var service = TestHelpers.CreateTokenService();
+            var sessionId = Guid.NewGuid();
 
             // Act
-            var token = await service.GenerateToken("user-1", "john.doe@example.com", "John Doe");
+            var token = await service.GenerateToken("user-1", "john.doe@example.com", "John Doe", sessionId);
 
             // Assert
             Assert.False(string.IsNullOrWhiteSpace(token));
@@ -21,15 +21,14 @@ namespace NobleBank.Infrastructure.Tests
             var handler = new JwtSecurityTokenHandler();
             var jwt = handler.ReadJwtToken(token);
 
-            // Standard claims
             Assert.Equal("issuer", jwt.Issuer);
             Assert.Contains(jwt.Audiences, a => a == "audience");
             Assert.Equal("user-1", jwt.Claims.First(c => c.Type == "sub").Value);
             Assert.Equal("john.doe@example.com", jwt.Claims.First(c => c.Type == "email").Value);
             Assert.Equal("John Doe", jwt.Claims.First(c => c.Type == "name").Value);
             Assert.NotNull(jwt.Claims.FirstOrDefault(c => c.Type == "jti"));
+            Assert.Equal(sessionId.ToString(), jwt.Claims.First(c => c.Type == "sid").Value);
 
-            // Role claims
             var roleClaims = jwt.Claims.Where(c => c.Type == ClaimTypes.Role).ToList();
             Assert.NotEmpty(roleClaims);
             Assert.Contains(roleClaims, c => c.Value == "User");
@@ -42,7 +41,7 @@ namespace NobleBank.Infrastructure.Tests
             var service = TestHelpers.CreateTokenServiceWithRoles("Administrator", "User", "Moderator");
 
             // Act
-            var token = await service.GenerateToken("admin-1", "admin@example.com", "Admin User");
+            var token = await service.GenerateToken("admin-1", "admin@example.com", "Admin User", Guid.NewGuid());
 
             // Assert
             var handler = new JwtSecurityTokenHandler();
@@ -63,7 +62,7 @@ namespace NobleBank.Infrastructure.Tests
             var service = TestHelpers.CreateTokenServiceWithRoles();
 
             // Act
-            var token = await service.GenerateToken("user-no-roles", "user@example.com", "User No Roles");
+            var token = await service.GenerateToken("user-no-roles", "user@example.com", "User No Roles", Guid.NewGuid());
 
             // Assert
             var handler = new JwtSecurityTokenHandler();

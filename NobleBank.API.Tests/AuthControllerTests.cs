@@ -1,6 +1,7 @@
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
 using NobleBank.API.Controllers;
+using NobleBank.Application.Common.Interfaces;
 using NobleBank.Application.Features.Auth;
 using NobleBank.Application.Features.Auth.Commands.Login;
 using NobleBank.Application.Features.Auth.Commands.Register;
@@ -9,6 +10,23 @@ namespace NobleBank.API.Tests
 {
     public class AuthControllerTests
     {
+        // Minimal ITokenService stub — the controller only uses GetUserIdFromToken
+        // in the sendBeacon logout path, which is not exercised by these unit tests.
+        private static ITokenService StubTokenService() => new FakeTokenService();
+
+        private sealed class FakeTokenService : ITokenService
+        {
+            public Task<string> GenerateToken(string userId, string email, string fullName)
+                => Task.FromResult(string.Empty);
+
+            public Task<string> GenerateToken(string userId, string email, string fullName, Guid sessionId)
+            {
+                throw new NotImplementedException();
+            }
+
+            public string? GetUserIdFromToken(string token) => null;
+        }
+
         [Fact]
         public async Task Register_WhenSuccessful_ShouldReturnOkWithToken()
         {
@@ -18,7 +36,7 @@ namespace NobleBank.API.Tests
                 RegisterCommand => new AuthResult(true, "token-123", null),
                 _ => null
             });
-            var controller = new AuthController(mediator);
+            var controller = new AuthController(mediator, StubTokenService());
             var command = new RegisterCommand("john.doe@example.com", "Password123!", "John", "Doe");
 
             // Act
@@ -38,7 +56,7 @@ namespace NobleBank.API.Tests
                 RegisterCommand => new AuthResult(false, null, "Email exists"),
                 _ => null
             });
-            var controller = new AuthController(mediator);
+            var controller = new AuthController(mediator, StubTokenService());
             var command = new RegisterCommand("john.doe@example.com", "Password123!", "John", "Doe");
 
             // Act
@@ -58,7 +76,7 @@ namespace NobleBank.API.Tests
                 LoginCommand => new AuthResult(true, "token-456", null),
                 _ => null
             });
-            var controller = new AuthController(mediator);
+            var controller = new AuthController(mediator, StubTokenService());
             var command = new LoginCommand("john.doe@example.com", "Password123!");
 
             // Act
@@ -78,7 +96,7 @@ namespace NobleBank.API.Tests
                 LoginCommand => new AuthResult(false, null, "Invalid credentials"),
                 _ => null
             });
-            var controller = new AuthController(mediator);
+            var controller = new AuthController(mediator, StubTokenService());
             var command = new LoginCommand("john.doe@example.com", "Password123!");
 
             // Act
@@ -87,6 +105,26 @@ namespace NobleBank.API.Tests
             // Assert
             var unauthorized = Assert.IsType<UnauthorizedObjectResult>(result);
             Assert.Equal("Invalid credentials", GetPropertyValue<string>(unauthorized.Value, "error"));
+        }
+
+        [Fact]
+        public async Task Login_WhenActiveSessionExists_ShouldReturnConflict()
+        {
+            // Arrange
+            var mediator = new TestHelpers.RecordingMediator(request => request switch
+            {
+                LoginCommand => new AuthResult(false, null, null, HasActiveSession: true),
+                _ => null
+            });
+            var controller = new AuthController(mediator, StubTokenService());
+            var command = new LoginCommand("john.doe@example.com", "Password123!");
+
+            // Act
+            IActionResult result = await controller.Login(command);
+
+            // Assert
+            var conflict = Assert.IsType<ConflictObjectResult>(result);
+            Assert.Equal(true, GetPropertyValue<bool>(conflict.Value, "hasActiveSession"));
         }
 
         private static T? GetPropertyValue<T>(object? instance, string propertyName)
