@@ -14,8 +14,12 @@ namespace NobleBank.API.Tests.Integration
         [Fact]
         public async Task RequestCard_HappyPath_CreatesCardInDatabase()
         {
+            var userId = "user-e2e";
+            var sessionId = Guid.NewGuid();
+
             var client = _factory.CreateClient();
-            client.DefaultRequestHeaders.Add("X-Test-User", "user-e2e");
+            client.DefaultRequestHeaders.Add("X-Test-User", userId);
+            client.DefaultRequestHeaders.Add("X-Test-SessionId", sessionId.ToString());
 
             var command = new
             {
@@ -24,25 +28,32 @@ namespace NobleBank.API.Tests.Integration
                 CreditLimit = 1000m
             };
 
-            // Ensure the user exists in the in-memory Identity store
+            // Ensure the user exists in the in-memory Identity store with matching SessionId
             using (var seedScope = _factory.Services.CreateScope())
             {
                 var db = seedScope.ServiceProvider.GetRequiredService<NobleBank.Infrastructure.Persistence.ApplicationDbContext>();
-                if (!db.Users.Any(u => u.Id == "user-e2e"))
+                var user = db.Users.FirstOrDefault(u => u.Id == userId);
+
+                if (user == null)
                 {
-                    var user = new NobleBank.Domain.Entities.ApplicationUser
+                    user = new NobleBank.Domain.Entities.ApplicationUser
                     {
-                        Id = "user-e2e",
-                        UserName = "user-e2e",
+                        Id = userId,
+                        UserName = userId,
                         Email = "user-e2e@example.com",
                         FirstName = "E2E",
                         LastName = "User",
-                        EmailConfirmed = true
+                        EmailConfirmed = true,
+                        SessionId = sessionId
                     };
-
                     db.Users.Add(user);
-                    db.SaveChanges();
                 }
+                else
+                {
+                    user.SessionId = sessionId;
+                }
+
+                db.SaveChanges();
             }
 
             var response = await client.PostAsJsonAsync("/api/Cards/request", command);
@@ -57,7 +68,7 @@ namespace NobleBank.API.Tests.Integration
             {
                 var dbContext = verifyScope.ServiceProvider.GetRequiredService<NobleBank.Infrastructure.Persistence.ApplicationDbContext>();
 
-                cards = dbContext.Cards.Where(c => c.CreatedBy == "user-e2e" || c.UserId == "user-e2e").ToList();
+                cards = dbContext.Cards.Where(c => c.CreatedBy == userId || c.UserId == userId).ToList();
                 if (cards.Count == 0)
                 {
                     // In case seed created admin user with same id, search by CreatedBy null-safe

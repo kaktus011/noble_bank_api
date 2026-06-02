@@ -23,13 +23,23 @@ namespace NobleBank.API.Tests.Integration
         {
             var userHeader = Context.Request.Headers["X-Test-User"].ToString();
             var rolesHeader = Context.Request.Headers["X-Test-Roles"].ToString();
+            var sessionIdHeader = Context.Request.Headers["X-Test-SessionId"].ToString();
 
             if (string.IsNullOrEmpty(userHeader))
             {
                 return Task.FromResult(AuthenticateResult.NoResult());
             }
 
-            List<Claim> claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, userHeader) };
+            // Use provided session ID or generate a new one
+            var sessionId = !string.IsNullOrEmpty(sessionIdHeader) && Guid.TryParse(sessionIdHeader, out var parsedId) 
+                ? parsedId 
+                : Guid.NewGuid();
+
+            List<Claim> claims = new List<Claim> 
+            { 
+                new Claim(ClaimTypes.NameIdentifier, userHeader),
+                new Claim("sid", sessionId.ToString()) // Add session ID claim
+            };
 
             if (!string.IsNullOrEmpty(rolesHeader))
             {
