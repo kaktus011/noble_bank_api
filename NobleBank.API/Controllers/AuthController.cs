@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NobleBank.Application.Common.Interfaces;
 using NobleBank.Application.Features.Auth.Commands.ClearSession;

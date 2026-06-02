@@ -1,224 +1,452 @@
-# Noble Bank API Repository Wiki
+# Noble Bank API — Repository Wiki
 
 ## Project Overview
-Noble Bank API is a layered ASP.NET Core Web API for digital banking scenarios.  
-It currently provides core functionality for:
-- User registration and login
-- JWT-based authentication and authorization
-- Card request and retrieval flows
-- Loan request and retrieval flows
 
-The project is **actively in development**. Functionality, endpoints, domain rules, and internal structure may change as new features are introduced and existing features are refined.
+Noble Bank API is a layered ASP.NET Core 8 Web API for digital banking scenarios.  
+It provides a full backend for user authentication, card and loan management, transactions, posts, and administrative workflows.
+
+The project follows **Clean Architecture** principles with strict separation between API, Application, Domain, and Infrastructure layers.
 
 ---
 
-## Goals of the API
-- Provide a secure backend API for banking-related features.
-- Keep business rules in a dedicated application/domain flow.
-- Use clear separation of concerns with clean project boundaries.
-- Support testability across API, application, infrastructure, and domain layers.
+## Solution Structure
+
+Eight projects in total:
+
+| Project | Role |
+|---|---|
+| `NobleBank.API` | HTTP host — controllers, middleware, program setup |
+| `NobleBank.Application` | CQRS use cases, validators, DTOs, interfaces |
+| `NobleBank.Domain` | Entities, business rules, enums, domain exceptions |
+| `NobleBank.Infrastructure` | EF Core, Identity, JWT, encryption, seeding |
+| `NobleBank.API.Tests` | API-layer tests |
+| `NobleBank.Application.Tests` | Application-layer tests |
+| `NobleBank.Domain.Tests` | Domain-layer tests |
+| `NobleBank.Infrastructure.Tests` | Infrastructure-layer tests |
 
 ---
 
-## Current Architecture
-The repository follows a layered structure:
+## API Endpoints
 
-### `NobleBank.API`
-Presentation layer:
-- HTTP controllers (`AuthController`, `CardsController`, `LoansController`)
-- Request pipeline setup in `Program.cs`
-- Swagger/OpenAPI exposure in development
-- JWT auth configuration and CORS policy
-- Global exception handling middleware (`ExceptionHandlingMiddleware`)
+### Authentication — `api/auth` (public)
 
-### `NobleBank.Application`
-Application/business orchestration layer:
-- CQRS-style commands and queries
-- MediatR handlers and pipeline behavior
-- FluentValidation command validation
-- AutoMapper DTO mapping
-- Application interfaces (`IApplicationDbContext`, `ITokenService`, `IIdentityService`)
+| Method | Endpoint | Body | Response | Notes |
+|---|---|---|---|---|
+| POST | `/register` | `{ email, password, firstName, lastName }` | `{ token }` | Creates user with `User` role |
+| POST | `/login` | `{ email, password, forceLogin? }` | `{ token }` or error | Rejects if active session exists unless `forceLogin: true` |
+| POST | `/logout` | `{ token? }` or `Authorization` header | `200 OK` | Clears server-side session |
 
-### `NobleBank.Domain`
-Core domain model:
-- Entities: `Card`, `Loan`, `Transaction`, `Post`, `ApplicationUser`
-- Domain enums and constants
-- Domain exceptions/results
-- Domain events (example: `CardBlockedEvent`)
-
-### `NobleBank.Infrastructure`
-Infrastructure and external concerns:
-- Entity Framework Core persistence (`ApplicationDbContext`)
-- SQL Server provider integration
-- Identity implementation
-- JWT token generation implementation
-- AES encryption service for stored card numbers
-- Dependency injection registrations and settings binding
-
-### Test Projects
-- `NobleBank.API.Tests`
-- `NobleBank.Application.Tests`
-- `NobleBank.Domain.Tests`
-- `NobleBank.Infrastructure.Tests`
-
-These provide unit-level and behavior-oriented coverage across layers.
+**Register validation:**
+- Email: required, valid format
+- Password: 8+ chars, 1 uppercase, 1 digit, 1 special character
+- FirstName / LastName: required, max 50 chars each
 
 ---
 
-## API Functionality (Current State)
+### Cards — `api/cards` (requires auth)
 
-### Authentication
-Controller: `api/auth`
-- `POST /api/auth/register`
-  - Registers a user via ASP.NET Core Identity.
-  - Returns JWT token when successful.
-- `POST /api/auth/login`
-  - Authenticates credentials.
-  - Returns JWT token when successful.
+| Method | Endpoint | Params / Body | Response | Notes |
+|---|---|---|---|---|
+| GET | `/` | — | `List<CardDto>` | Returns authenticated user's cards only |
+| GET | `/{id:guid}` | — | `CardDto` or 404 | User-scoped by ID |
+| POST | `/request` | `{ type, brand, creditLimit? }` | `CardDto` (201) | Creates card in `Pending` state |
 
-Validation highlights:
-- Email must be valid.
-- Password rules require length, uppercase letter, number, and special character.
-
-### Cards
-Controller: `api/cards` (authorized)
-- `GET /api/cards`
-  - Returns cards for the authenticated user.
-- `GET /api/cards/{id}`
-  - Returns a single card by id for the authenticated user.
-- `POST /api/cards/request`
-  - Creates a card request for the authenticated user.
-
-Business highlights:
-- Card number generation uses cryptographically secure random digits.
-- Check digit is calculated with Luhn algorithm.
-- Type/brand are validated; credit cards require positive credit limit.
-- Card number is encrypted at EF Core persistence layer.
-
-### Loans
-Controller: `api/loans` (authorized)
-- `GET /api/loans`
-  - Returns loans for the authenticated user.
-- `GET /api/loans/{id}`
-  - Returns a single loan by id for the authenticated user.
-- `POST /api/loans/request`
-  - Creates a loan in `Pending` state for the authenticated user.
-
-Business highlights:
-- Loan amount and term validations are enforced.
-- Interest rate is selected based on loan type.
-- Monthly payment is derived in the domain model.
-- Approval is intentionally separate from initial request workflow.
+**RequestCard validation:**
+- `type`: valid `CardEnum.Type`
+- `brand`: valid `CardEnum.Brand`
+- `creditLimit`: required and > 0 for Credit cards; must be null for Debit / Virtual
 
 ---
 
-## Data and Persistence
+### Loans — `api/loans` (requires auth)
+
+| Method | Endpoint | Params / Body | Response | Notes |
+|---|---|---|---|---|
+| GET | `/` | — | `List<LoanDto>` | Returns authenticated user's loans only |
+| GET | `/{id:guid}` | — | `LoanDto` or 404 | User-scoped by ID |
+| POST | `/request` | `{ amount, termMonths, type }` | `LoanDto` (201) | Creates loan in `Pending` state |
+
+**RequestLoan validation:**
+- `amount`: 0.01 – 100,000
+- `termMonths`: 1 – 360
+- `type`: valid `LoansEnum.Type`
+
+---
+
+### Transactions — `api/transactions` (requires auth)
+
+| Method | Endpoint | Params / Body | Response | Notes |
+|---|---|---|---|---|
+| GET | `/` | `?cardId=&limit=` (optional, default limit 50) | `List<TransactionDto>` | User-scoped, ordered by newest first |
+| GET | `/{id:guid}` | — | `TransactionDto` or 404 | User-scoped by ID |
+| POST | `/` | `{ cardId, amount, description, type }` | `TransactionDto` (201) | Records a transaction against a card |
+
+**CreateTransaction validation:**
+- `cardId`: required
+- `amount`: > 0
+- `description`: required, max 250 chars
+- `type`: valid `TransactionsEnum.Type`
+
+---
+
+### Posts — `api/posts` (requires auth)
+
+| Method | Endpoint | Auth | Body | Response | Notes |
+|---|---|---|---|---|---|
+| GET | `/` | User | — | `List<PostDto>` | All posts |
+| GET | `/{id:guid}` | User | — | `PostDto` or 404 | Single post |
+| POST | `/` | Administrator | `{ title, body }` | `PostDto` (201) | Admin only |
+| DELETE | `/{id:guid}` | Administrator | — | 204 | Admin only |
+
+**CreatePost validation:**
+- `title`: required, max 200 chars
+- `body`: required, max 5000 chars
+
+---
+
+### Admin — `api/admin` (requires `Administrator` role)
+
+#### Cards
+| Method | Endpoint | Body | Response | Notes |
+|---|---|---|---|---|
+| GET | `/cards` | — | `List<CardDto>` | All cards across all users |
+| GET | `/cards/{id:guid}` | — | `CardDto` or 404 | Any card by ID |
+| GET | `/cards/pending` | — | `List<CardDto>` | All pending card requests |
+| POST | `/cards/{id:guid}/approve` | — | 204 | Activates card |
+| POST | `/cards/{id:guid}/reject` | `{ reason }` | 204 | Rejects with reason |
+
+#### Loans
+| Method | Endpoint | Body | Response | Notes |
+|---|---|---|---|---|
+| GET | `/loans` | — | `List<LoanDto>` | All loans across all users |
+| GET | `/loans/{id:guid}` | — | `LoanDto` or 404 | Any loan by ID |
+| GET | `/loans/pending` | — | `List<LoanDto>` | All pending loan requests |
+| POST | `/loans/{id:guid}/approve` | — | 204 | Activates loan |
+| POST | `/loans/{id:guid}/reject` | `{ reason }` | 204 | Rejects with reason |
+
+#### Transactions
+| Method | Endpoint | Response | Notes |
+|---|---|---|---|
+| GET | `/transactions` | `List<TransactionDto>` | All transactions across all users (max 50) |
+| GET | `/transactions/{id:guid}` | `TransactionDto` or 404 | Any transaction by ID |
+
+---
+
+## Domain Model
+
+### BaseEntity
+All domain entities extend `BaseEntity`:
+- `Id: Guid`
+- `CreatedAt: DateTime`
+- `UpdatedAt: DateTime`
+- `DomainEvents: IReadOnlyCollection<INotification>`
+
+---
+
+### ApplicationUser *(extends IdentityUser)*
+| Property | Type | Notes |
+|---|---|---|
+| FirstName | string | |
+| LastName | string | |
+| FullName | string (computed) | FirstName + " " + LastName |
+| SessionId | Guid? | Tracks active login session; null = no active session |
+| Cards | ICollection\<Card\> | Navigation |
+| Loans | ICollection\<Loan\> | Navigation |
+| Posts | ICollection\<Post\> | Navigation |
+
+---
+
+### Card
+| Property | Type | Notes |
+|---|---|---|
+| CardNumber | string | AES-encrypted at persistence layer |
+| Last4Digits | string | Safe for display |
+| CardHolder | string | Stored uppercase |
+| Type | CardEnum.Type | Debit / Credit / Virtual |
+| Brand | CardEnum.Brand | Visa / Mastercard / AmericanExpress / Maestro |
+| Status | CardEnum.Status | Pending → Active / Rejected / Blocked / Inactive |
+| Balance | decimal | |
+| CreditLimit | decimal? | Credit cards only |
+| Currency | string | Default: `EUR` |
+| ExpiryDate | DateTime | 4 years from creation |
+| IsExpired | bool (computed) | |
+| MaskedNumber | string (computed) | `**** **** **** {last4}` |
+| RejectionReason | string? | Set on rejection |
+| UserId | string | FK to ApplicationUser |
+
+**Card enums:**
+- `CardEnum.Brand`: Visa (1), Mastercard (2), AmericanExpress (3), Maestro (4)
+- `CardEnum.Type`: Debit (0), Credit (1), Virtual (2)
+- `CardEnum.Status`: Unknown (0), Pending (1), Active (2), Inactive (3), Blocked (4), Rejected (5)
+
+**Domain methods:**
+- `Create(...)` — generates 16-digit Luhn-valid card number, sets status to Pending
+- `Activate()` — Pending → Active
+- `Reject(reason)` — Pending → Rejected
+- `Block()` — Active → Blocked, publishes `CardBlockedEvent`
+- `Deposit(amount)` — increases balance
+- `Withdraw(amount)` — decreases balance; validates Active status, expiry, sufficient funds; returns `Result<decimal>`
+
+---
+
+### Loan
+| Property | Type | Notes |
+|---|---|---|
+| Amount | decimal | 0.01 – 100,000 |
+| RemainingAmount | decimal | Decreases with payments |
+| InterestRate | decimal | Annual %, e.g. 4.5 |
+| TermMonths | int | 1 – 360 |
+| MonthlyPayment | decimal | Calculated with standard amortisation formula |
+| Status | LoansEnum.Status | Pending → Active / Rejected / Closed |
+| Type | LoansEnum.Type | Personal / Mortgage / Auto / Student |
+| StartDate | DateTime | |
+| EndDate | DateTime? | Set on approval or auto-close |
+| RejectionReason | string? | |
+| UserId | string | FK to ApplicationUser |
+
+**Loan enums:**
+- `LoansEnum.Status`: Active (0), Pending (1), Closed (2), Rejected (3)
+- `LoansEnum.Type`: Personal (0), Mortgage (1), Auto (2), Student (3)
+
+**Domain methods:**
+- `Create(...)` — calculates monthly payment, sets status to Pending
+- `Approve()` — Pending → Active, sets StartDate and EndDate
+- `Reject(reason, performedBy)` — Pending → Rejected
+- `MakePayment(amount, performedBy)` — reduces RemainingAmount; auto-closes (status → Closed) when fully paid; returns `Result<decimal>`
+
+---
+
+### Transaction
+| Property | Type | Notes |
+|---|---|---|
+| Amount | decimal | Must be > 0 |
+| Description | string | Max 250 chars |
+| Type | TransactionsEnum.Type | Income / Expense / Transfer |
+| OccurredAt | DateTime | |
+| CardId | Guid | FK to Card |
+| PerformedBy | string | User ID of performer |
+
+**Transaction enum:**
+- `TransactionsEnum.Type`: Income (0), Expense (1), Transfer (2)
+
+---
+
+### Post
+| Property | Type | Notes |
+|---|---|---|
+| Title | string | Max 200 chars |
+| Body | string | Max 5000 chars |
+| UserId | string | FK to ApplicationUser (creator) |
+
+---
+
+## DTOs
+
+### CardDto
+`Id, Brand, Last4Digits, CardHolder, Type, Status, Balance, CreditLimit, Currency, ExpiryDate, IsExpired, IsCredit`
+
+### LoanDto
+`Id, Amount, RemainingAmount, InterestRate, TermMonths, MonthlyPayment, Status, Type, StartDate, EndDate, ProgressPercentage, RejectionReason, UserId`
+
+> `ProgressPercentage` is computed: `(Amount - RemainingAmount) / Amount * 100`
+
+### TransactionDto
+`Id, Amount, Description, Type, OccurredAt, CardId, CardLast4`
+
+### PostDto
+`Id, Title, Body, CreatedAt, UpdatedAt`
+
+---
+
+## Authentication & Session Management
+
+### JWT Tokens
+- Algorithm: HS256 (symmetric)
+- Default expiry: 60 minutes (configurable via `Jwt:ExpiryMinutes`)
+- Claims: `sub` (UserId), `email`, `name`, `jti`, role claim (`http://schemas.microsoft.com/ws/2008/06/identity/claims/role`)
+
+### Session Tracking
+Each user has a `SessionId` (Guid?) stored in the database:
+- **Login**: sets `SessionId` to a new Guid
+- **Concurrent login**: returns an error if `SessionId` is already set — pass `forceLogin: true` in the request body to override
+- **Logout**: clears `SessionId`; accepts token via `Authorization` header or request body (supports `sendBeacon` from browsers)
+
+### Roles
+| Role | Assigned By | Access |
+|---|---|---|
+| `User` | Auto-assigned on registration | Standard user endpoints |
+| `Administrator` | Database seeder or manual assignment | All endpoints including `api/admin/*` |
+
+---
+
+## Infrastructure
+
+### Encryption
+- Card numbers are encrypted using **AES-256** via EF Core value conversion
+- `IEncryptionService` → `AesEncryptionService`
+- Key and IV must be provided as Base64-encoded strings via configuration
+
+### Identity Configuration
+- Password: 8+ chars, 1 uppercase, 1 digit, 1 special character
+- Account lockout: 5 failed attempts → 15-minute lockout
+- Unique email required per user
+
+### Database
 - ORM: Entity Framework Core 8
-- Database provider: SQL Server
-- Identity: ASP.NET Core Identity integrated into the same DbContext
-- `ApplicationDbContext` sets audit timestamps (`CreatedAt`, `UpdatedAt`) on save
-- Domain events are dispatched through MediatR after successful save
+- Provider: SQL Server (`Server=(localdb)\mssqllocaldb` for local dev)
+- `ApplicationDbContext` sets `CreatedAt` and `UpdatedAt` automatically on save
+- Domain events dispatched via MediatR after each successful save
 
-### Card Number Encryption
-- `Card.CardNumber` is encrypted/decrypted via EF Core value conversion.
-- Encryption implementation uses AES with configured key and IV.
-- `Last4Digits` and masked card display are used for safe presentation.
-
----
-
-## Security Model (Current)
-- JWT bearer authentication for protected endpoints.
-- Authorization required for card and loan endpoints.
-- Password and lockout policies configured in Identity options.
-- Global exception middleware returns structured `ProblemDetails` responses.
-- Settings-based secrets:
-  - `Jwt:Secret`
-  - `Encryption:Key`
-  - `Encryption:IV`
-
-> Note: Ensure production deployments use strong secrets management (e.g., secret vaults/environment configuration) and avoid committing sensitive values.
+### MediatR Pipeline
+1. `ValidationBehaviour` — runs FluentValidation validators before reaching handlers
+2. Handler executes the command/query
+3. Domain events dispatched post-save
 
 ---
 
-## Tooling and Technologies Used
+## Exception Handling
 
-### Runtime and Language
-- .NET 8
-- C#
-- ASP.NET Core Web API
+`ExceptionHandlingMiddleware` catches all unhandled exceptions and returns structured **RFC 7807 ProblemDetails** responses:
 
-### Core Libraries
-- MediatR (request/handler pipeline)
-- FluentValidation (input/command validation)
-- AutoMapper (mapping)
-- EF Core + SQL Server provider (data access)
-- ASP.NET Core Identity (user management)
-- JWT token libraries (`System.IdentityModel.Tokens.Jwt`, `Microsoft.IdentityModel.Tokens`)
-- Swashbuckle (Swagger/OpenAPI)
+| Exception | HTTP Status | Title |
+|---|---|---|
+| `NotFoundException` | 404 | Not Found |
+| `DomainException` | 400 | Business Rule Violation |
+| `ValidationException` | 400 | Validation Failed |
+| `UnauthorizedAccessException` | 401 | Unauthorized |
+| Anything else | 500 | An error occurred |
 
-### Testing Stack
-- xUnit
-- Microsoft.NET.Test.Sdk
-- coverlet.collector
-- EF Core InMemory (in selected tests)
+Validation errors include a field-level `errors` dictionary in the response body.
 
-### CI
-GitHub Actions workflow: `.github/workflows/dotnet-tests.yml`
-- `dotnet restore`
-- `dotnet build --configuration Release`
-- `dotnet test --configuration Release`
+---
+
+## Database Seeding
+
+`DatabaseSeeder` runs automatically on startup when `ASPNETCORE_ENVIRONMENT = Development` (or when `RunDatabaseSeeding: true` is set in config).
+
+**Always runs:**
+- Creates `Administrator` and `User` roles if they don't exist
+- Removes duplicate roles if found
+
+**Conditional (requires `AdminSeeder` config):**
+- Creates an admin user with the configured email and password
+- Assigns the `Administrator` role
+- If the user already exists, ensures they have the `Administrator` role
+
+**Default config** (`appsettings.json`): `AdminSeeder.Disabled: true` — no admin user is seeded unless explicitly configured.
 
 ---
 
 ## Configuration
-Main configuration file: `NobleBank.API/appsettings.json`
 
-Key sections:
-- `ConnectionStrings:DefaultConnection`
-- `Jwt` (`Secret`, `Issuer`, `Audience`, `ExpiryMinutes`)
-- `Encryption` (`Key`, `IV`)
+Main file: `NobleBank.API/appsettings.json`
 
-The infrastructure layer validates required encryption/JWT settings at startup.
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=NobleBankDb;Trusted_Connection=True;"
+  },
+  "Jwt": {
+    "Secret": "",
+    "Issuer": "NobleBankApi",
+    "Audience": "NobleBankClient",
+    "ExpiryMinutes": 60
+  },
+  "Encryption": {
+    "Key": "",
+    "IV": ""
+  },
+  "AdminSeeder": {
+    "Disabled": true,
+    "Email": "",
+    "Password": ""
+  }
+}
+```
+
+> `Jwt:Secret`, `Encryption:Key`, and `Encryption:IV` **must** be provided at runtime (via `appsettings.Development.json`, environment variables, or a secret vault). The application validates these on startup and will fail to start if they are empty.
+>
+> `Encryption:Key` must be a Base64-encoded 32-byte value (AES-256).  
+> `Encryption:IV` must be a Base64-encoded 16-byte value.  
+> `Jwt:Secret` must be at least 32 characters.
 
 ---
 
-## Repository Structure (High-Level)
-- `NobleBank.API/` — API host, controllers, middleware
-- `NobleBank.Application/` — use cases, validators, mappings, interfaces
-- `NobleBank.Domain/` — entities, business rules, domain abstractions
-- `NobleBank.Infrastructure/` — persistence, identity, token/encryption services
-- `*.Tests/` — test suites per layer
+## Security Notes
+
+- **Never commit** `Jwt:Secret`, `Encryption:Key`, or `Encryption:IV` to source control. Use `appsettings.Development.json` (git-ignored) or environment variables locally.
+- **Production deployments** must use a secret vault (e.g., Azure Key Vault) or environment-level configuration.
+- Card numbers are always stored encrypted. `Last4Digits` is used for all display purposes.
+- The 401 interceptor on the frontend wipes the local token and redirects to login on any 401 response.
 
 ---
 
-## How to Build and Test Locally
-From repository root:
+## CORS
+
+Single policy `ReactApp` configured for local development:
+- Allowed origin: `http://localhost:5173`
+- Allowed headers: any
+- Allowed methods: any
+
+---
+
+## How to Build and Run Locally
 
 ```bash
+# Restore and build
 dotnet restore
 dotnet build --configuration Release
+
+# Run tests
 dotnet test --configuration Release
+
+# Run the API (Development profile — uses https://localhost:7109)
+cd NobleBank.API
+dotnet run --launch-profile https
+```
+
+Before running for the first time, populate the secrets in `NobleBank.API/appsettings.Development.json`:
+
+```json
+{
+  "Jwt": { "Secret": "<32+ char random string>" },
+  "Encryption": {
+    "Key": "<base64 of 32 random bytes>",
+    "IV":  "<base64 of 16 random bytes>"
+  },
+  "AdminSeeder": {
+    "Disabled": false,
+    "Email": "admin@example.com",
+    "Password": "Admin1234!"
+  }
+}
+```
+
+Apply migrations:
+
+```bash
+dotnet ef database update --project NobleBank.Infrastructure --startup-project NobleBank.API
 ```
 
 ---
 
-## Current Limitations and In-Progress Areas
-Given active development status, some areas are intentionally incomplete or expected to evolve:
-- API surface will expand with additional banking workflows.
-- Domain workflows (e.g., approvals, transactions lifecycle) may be deepened.
-- Authorization and role/permission granularity may be extended.
-- Operational hardening (monitoring, deployment setup, environment-specific concerns) may evolve.
+## CI
 
-Treat this wiki as a **living document** and update it as features are added, removed, or changed.
+GitHub Actions workflow: `.github/workflows/dotnet-tests.yml`
+
+Steps:
+1. `dotnet restore`
+2. `dotnet build --configuration Release`
+3. `dotnet test --configuration Release`
 
 ---
 
 ## Maintenance Notes
-When updating this project, keep this wiki aligned with:
-- Endpoint behavior changes
-- Domain rule changes
-- Security/authentication updates
-- New dependencies/tooling
-- Architectural refactors
 
-Keeping documentation current reduces onboarding time and prevents drift between implementation and expectations.
+Keep this wiki aligned with the codebase when making changes to:
+- Endpoint paths, request/response shapes, or auth requirements
+- Domain entity properties or business rules
+- New validators or changes to existing validation logic
+- Roles or permission model changes
+- Infrastructure dependencies or settings
+- Seeding behaviour

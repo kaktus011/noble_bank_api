@@ -25,10 +25,33 @@ namespace NobleBank.Infrastructure.Identity
 
         public string? GetUserIdFromToken(string token)
         {
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return null;
+            }
+            
             try
             {
-                var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
-                return jwt.Subject; // the 'sub' claim
+                token = token.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+                    ? token["Bearer ".Length..].Trim()
+                    : token.Trim();
+
+                TokenValidationParameters parameters = new()
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Secret)),
+                    ValidateIssuer = true,
+                    ValidIssuer = _settings.Issuer,
+                    ValidateAudience = true,
+                    ValidAudience = _settings.Audience,
+                    // Allow logout even if the access token is already expired.
+                    ValidateLifetime = false
+                };
+
+                ClaimsPrincipal principal = new JwtSecurityTokenHandler().ValidateToken(token, parameters, out _);
+
+                return principal.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                       ?? principal.FindFirstValue(ClaimTypes.NameIdentifier);
             }
             catch
             {

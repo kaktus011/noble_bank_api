@@ -18,22 +18,30 @@ namespace NobleBank.API.Filters
         public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
         {
             if (context.HttpContext.User.Identity?.IsAuthenticated != true)
+            {
                 return;
+            }
 
-            var userId = context.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var sessionIdClaim = context.HttpContext.User.FindFirstValue("sid");
+            string? userId = context.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            string? sessionIdClaim = context.HttpContext.User.FindFirstValue("sid");
 
             if (userId is null || !Guid.TryParse(sessionIdClaim, out var tokenSessionId))
-                return;
+            {
+                context.Result = new UnauthorizedObjectResult(new { error = "Invalid session." });
 
-            var dbSessionId = await _context.Users
+                return;
+            }
+
+            Guid? dbSessionId = await _context.Users
                 .AsNoTracking()
                 .Where(u => u.Id == userId)
                 .Select(u => (Guid?)u.SessionId)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(context.HttpContext.RequestAborted);
 
             if (dbSessionId != tokenSessionId)
+            {
                 context.Result = new UnauthorizedObjectResult(new { error = "Session has been terminated." });
+            }
         }
     }
 }
