@@ -11,7 +11,7 @@ namespace NobleBank.Application.Tests.CardTests
     {
         public static IMapper CreateMapper()
         {
-            var configuration = new MapperConfiguration(cfg => cfg.AddProfile<CardMappingProfile>());
+            var configuration = new MapperConfiguration(cfg => cfg.AddProfile<CardMappingProfile>(), Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance);
             return configuration.CreateMapper();
         }
 

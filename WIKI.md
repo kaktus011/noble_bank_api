@@ -364,7 +364,7 @@ Main file: `NobleBank.API/appsettings.json`
 }
 ```
 
-> `Jwt:Secret`, `Encryption:Key`, and `Encryption:IV` **must** be provided at runtime (via `appsettings.Development.json`, environment variables, or a secret vault). The application validates these on startup and will fail to start if they are empty.
+> `Jwt:Secret`, `Encryption:Key`, and `Encryption:IV` **must** be provided at runtime (via .NET user-secrets locally, environment variables, or a secret vault in production). The application validates these on startup and will fail to start if they are empty. **Never** put real values in `appsettings*.json` — those files are committed.
 >
 > `Encryption:Key` must be a Base64-encoded 32-byte value (AES-256).  
 > `Encryption:IV` must be a Base64-encoded 16-byte value.  
@@ -374,8 +374,9 @@ Main file: `NobleBank.API/appsettings.json`
 
 ## Security Notes
 
-- **Never commit** `Jwt:Secret`, `Encryption:Key`, or `Encryption:IV` to source control. Use `appsettings.Development.json` (git-ignored) or environment variables locally.
-- **Production deployments** must use a secret vault (e.g., Azure Key Vault) or environment-level configuration.
+- **Never commit** `Jwt:Secret`, `Encryption:Key`, `Encryption:IV`, or `AdminSeeder:Password` to source control. `appsettings.Development.json` **is** tracked by git — do not put real secrets there. Use .NET user-secrets locally (`dotnet user-secrets set "Jwt:Secret" "..."`) or environment variables.
+- **Production deployments** must use a secret vault (e.g., Azure Key Vault) or environment-level configuration injected by the deploy pipeline.
+- If a secret is ever committed by accident, rotate it immediately — the git history makes it permanently exposed even after the file is scrubbed.
 - Card numbers are always stored encrypted. `Last4Digits` is used for all display purposes.
 - The 401 interceptor on the frontend wipes the local token and redirects to login on any 401 response.
 
@@ -384,7 +385,7 @@ Main file: `NobleBank.API/appsettings.json`
 ## CORS
 
 Single policy `ReactApp` configured for local development:
-- Allowed origin: `http://localhost:5173`
+- Allowed origin: `https://localhost:5173` (configurable via `Cors:AllowedOrigins`)
 - Allowed headers: any
 - Allowed methods: any
 
@@ -405,22 +406,24 @@ cd NobleBank.API
 dotnet run --launch-profile https
 ```
 
-Before running for the first time, populate the secrets in `NobleBank.API/appsettings.Development.json`:
+Before running for the first time, populate the secrets via **.NET user-secrets** (stored outside the repo, per-developer). From `NobleBank.API/`:
 
-```json
-{
-  "Jwt": { "Secret": "<32+ char random string>" },
-  "Encryption": {
-    "Key": "<base64 of 32 random bytes>",
-    "IV":  "<base64 of 16 random bytes>"
-  },
-  "AdminSeeder": {
-    "Disabled": false,
-    "Email": "admin@example.com",
-    "Password": "Admin1234!"
-  }
-}
+```bash
+dotnet user-secrets set "Jwt:Secret"          "<32+ char random string>"
+dotnet user-secrets set "Encryption:Key"      "<base64 of 32 random bytes>"
+dotnet user-secrets set "Encryption:IV"       "<base64 of 16 random bytes>"
+dotnet user-secrets set "AdminSeeder:Password" "<strong password>"
 ```
+
+Generate the random values with a CSPRNG, e.g. in PowerShell:
+
+```powershell
+$b = New-Object byte[] 32
+[System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b)
+[Convert]::ToBase64String($b)
+```
+
+Do **not** put these values in `appsettings.Development.json` — that file is committed to the repo.
 
 Apply migrations:
 

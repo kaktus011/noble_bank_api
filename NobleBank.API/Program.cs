@@ -72,11 +72,27 @@ namespace NobleBank.API
                 };
             });
 
+            string[] corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+                                   ?? new[] { "https://localhost:5173" };
+
             builder.Services.AddCors(options =>
                 options.AddPolicy("ReactApp", policy =>
-                    policy.WithOrigins("http://localhost:5173")
+                    policy.WithOrigins(corsOrigins)
                           .AllowAnyHeader()
                           .AllowAnyMethod()));
+
+            builder.Services.AddHttpsRedirection(options =>
+            {
+                options.RedirectStatusCode = StatusCodes.Status308PermanentRedirect;
+                options.HttpsPort = 443;
+            });
+
+            builder.Services.AddHsts(options =>
+            {
+                options.Preload = true;
+                options.IncludeSubDomains = true;
+                options.MaxAge = TimeSpan.FromDays(365);
+            });
 
             WebApplication app = builder.Build();
 
@@ -110,6 +126,10 @@ namespace NobleBank.API
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
+            }
+            else
+            {
+                app.UseHsts();
             }
 
             app.UseMiddleware<ExceptionHandlingMiddleware>();
