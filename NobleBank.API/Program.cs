@@ -84,7 +84,6 @@ namespace NobleBank.API
             builder.Services.AddHttpsRedirection(options =>
             {
                 options.RedirectStatusCode = StatusCodes.Status308PermanentRedirect;
-                options.HttpsPort = 443;
             });
 
             builder.Services.AddHsts(options =>
