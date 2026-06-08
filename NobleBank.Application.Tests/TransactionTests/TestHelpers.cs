@@ -11,7 +11,7 @@ namespace NobleBank.Application.Tests.TransactionTests
     {
         public static IMapper CreateMapper()
         {
-            var configuration = new MapperConfiguration(cfg => cfg.AddProfile<TransactionMappingProfile>());
+            var configuration = new MapperConfiguration(cfg => cfg.AddProfile<TransactionMappingProfile>(), Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance);
             return configuration.CreateMapper();
         }
 

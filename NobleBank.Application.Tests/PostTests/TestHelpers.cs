@@ -10,7 +10,7 @@ namespace NobleBank.Application.Tests.PostTests
     {
         public static IMapper CreateMapper()
         {
-            var configuration = new MapperConfiguration(cfg => cfg.AddProfile<PostMappingProfile>());
+            var configuration = new MapperConfiguration(cfg => cfg.AddProfile<PostMappingProfile>(), Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance);
 
             return configuration.CreateMapper();
         }

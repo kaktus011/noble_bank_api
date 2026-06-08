@@ -11,7 +11,7 @@ namespace NobleBank.Application.Tests.LoanTests
     {
         public static IMapper CreateMapper()
         {
-            var configuration = new MapperConfiguration(cfg => cfg.AddProfile<LoanMappingProfile>());
+            var configuration = new MapperConfiguration(cfg => cfg.AddProfile<LoanMappingProfile>(), Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance);
             return configuration.CreateMapper();
         }
 
