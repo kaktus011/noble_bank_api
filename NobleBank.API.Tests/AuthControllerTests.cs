@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using NobleBank.API.Controllers;
 using NobleBank.Application.Common.Interfaces;
 using NobleBank.Application.Features.Auth;
+using NobleBank.Application.Features.Auth.Commands.ClearSession;
 using NobleBank.Application.Features.Auth.Commands.Login;
 using NobleBank.Application.Features.Auth.Commands.Register;
 
@@ -16,6 +17,9 @@ namespace NobleBank.API.Tests
 
         private sealed class FakeTokenService : ITokenService
         {
+            public string? UserIdFromToken { get; set; }
+            public Guid? SessionIdFromToken { get; set; }
+
             public Task<string> GenerateToken(string userId, string email, string fullName)
                 => Task.FromResult(string.Empty);
 
@@ -24,7 +28,9 @@ namespace NobleBank.API.Tests
                 throw new NotImplementedException();
             }
 
-            public string? GetUserIdFromToken(string token) => null;
+            public string? GetUserIdFromToken(string token) => UserIdFromToken;
+
+            public Guid? GetSessionIdFromToken(string token) => SessionIdFromToken;
         }
 
         [Fact]
@@ -125,6 +131,48 @@ namespace NobleBank.API.Tests
             // Assert
             var conflict = Assert.IsType<ConflictObjectResult>(result);
             Assert.Equal(true, GetPropertyValue<bool>(conflict.Value, "hasActiveSession"));
+        }
+
+        [Fact]
+        public async Task Logout_WithBodyToken_ShouldForwardUserIdAndSessionIdToCommand()
+        {
+            // Arrange
+            var sessionId = Guid.NewGuid();
+            ClearSessionCommand? observed = null;
+            var mediator = new TestHelpers.RecordingMediator(request =>
+            {
+                if (request is ClearSessionCommand cmd) observed = cmd;
+                return null;
+            });
+            var tokenService = new FakeTokenService { UserIdFromToken = "user-1", SessionIdFromToken = sessionId };
+            var controller = new AuthController(mediator, tokenService);
+            controller.ControllerContext = TestHelpers.CreateControllerContext(userId: null);
+
+            // Act
+            IActionResult result = await controller.Logout(new LogoutRequest("any-jwt"));
+
+            // Assert
+            Assert.IsType<OkResult>(result);
+            Assert.NotNull(observed);
+            Assert.Equal("user-1", observed!.UserId);
+            Assert.Equal(sessionId, observed.SessionId);
+        }
+
+        [Fact]
+        public async Task Logout_WithUnknownToken_ShouldNotSendCommand()
+        {
+            // Arrange
+            var mediator = new TestHelpers.RecordingMediator(_ => null);
+            var tokenService = new FakeTokenService { UserIdFromToken = null, SessionIdFromToken = null };
+            var controller = new AuthController(mediator, tokenService);
+            controller.ControllerContext = TestHelpers.CreateControllerContext(userId: null);
+
+            // Act
+            IActionResult result = await controller.Logout(new LogoutRequest("bogus"));
+
+            // Assert
+            Assert.IsType<OkResult>(result);
+            Assert.DoesNotContain(mediator.Requests, r => r is ClearSessionCommand);
         }
 
         private static T? GetPropertyValue<T>(object? instance, string propertyName)

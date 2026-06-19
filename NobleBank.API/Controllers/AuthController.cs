@@ -55,20 +55,26 @@ namespace NobleBank.API.Controllers
         public async Task<IActionResult> Logout([FromBody] LogoutRequest? request = null)
         {
             string? userId = null;
+            Guid? sessionId = null;
 
             // Normal logout: Authorization header is present
             if (User.Identity?.IsAuthenticated == true)
             {
                 userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (Guid.TryParse(User.FindFirstValue("sid"), out var parsedSid))
+                {
+                    sessionId = parsedSid;
+                }
             }
-            // sendBeacon logout: token is in the request body
+            // sendBeacon / page-reload logout: token is in the request body
             else if (request?.Token is not null)
             {
                 userId = _tokenService.GetUserIdFromToken(request.Token);
+                sessionId = _tokenService.GetSessionIdFromToken(request.Token);
             }
 
             if (userId is not null)
-                await _mediator.Send(new ClearSessionCommand(userId));
+                await _mediator.Send(new ClearSessionCommand(userId, sessionId));
 
             return Ok();
         }

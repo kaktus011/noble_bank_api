@@ -5,5 +5,7 @@
         Task<string> GenerateToken(string userId, string email, string fullName, Guid sessionId);
 
         string? GetUserIdFromToken(string token);
+
+        Guid? GetSessionIdFromToken(string token);
     }
 }
