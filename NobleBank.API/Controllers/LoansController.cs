@@ -1,6 +1,8 @@
 ﻿using NobleBank.Application.Features.Loans.Commands.RequestLoan;
 using NobleBank.Application.Features.Loans.Queries.GetAllLoans;
 using NobleBank.Application.Features.Loans.Queries.GetLoanById;
+using NobleBank.Application.Features.Loans.Queries.GetLoanOptions;
+using NobleBank.Domain.Common;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -48,6 +50,17 @@ public class LoansController : BaseController
         }
 
         return Ok(loan);
+    }
+
+    [HttpGet("options")]
+    public ActionResult<LoanOptionsDto> GetOptions()
+    {
+        var options = new LoanOptionsDto(
+            Types: Enum.GetValues<LoansEnum.Type>()
+                .Select(t => new LoanEnumOption((int)t, t.ToString()))
+                .ToList());
+
+        return Ok(options);
     }
 
     [HttpPost("request")]

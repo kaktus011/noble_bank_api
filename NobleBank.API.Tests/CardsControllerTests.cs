@@ -4,6 +4,8 @@ using NobleBank.API.Controllers;
 using NobleBank.Application.Features.Cards.Commands.RequestCard;
 using NobleBank.Application.Features.Cards.Queries.GetAllCards;
 using NobleBank.Application.Features.Cards.Queries.GetCardById;
+using NobleBank.Application.Features.Cards.Queries.GetCardOptions;
+using NobleBank.Domain.Common;
 
 namespace NobleBank.API.Tests
 {
@@ -114,6 +116,34 @@ namespace NobleBank.API.Tests
             var created = Assert.IsType<CreatedAtActionResult>(result.Result);
             Assert.Equal(nameof(CardsController.GetById), created.ActionName);
             Assert.Same(dto, created.Value);
+        }
+
+        [Fact]
+        public void GetOptions_ShouldReturnAllCardTypesAndBrands()
+        {
+            // Arrange
+            var controller = CreateController(userId: "user-1");
+
+            // Act
+            ActionResult<CardOptionsDto> result = controller.GetOptions();
+
+            // Assert
+            var ok = Assert.IsType<OkObjectResult>(result.Result);
+            var options = Assert.IsType<CardOptionsDto>(ok.Value);
+
+            var expectedTypes = Enum.GetValues<CardEnum.Type>();
+            Assert.Equal(expectedTypes.Length, options.Types.Count);
+            foreach (var t in expectedTypes)
+            {
+                Assert.Contains(options.Types, o => o.Value == (int)t && o.Name == t.ToString());
+            }
+
+            var expectedBrands = Enum.GetValues<CardEnum.Brand>();
+            Assert.Equal(expectedBrands.Length, options.Brands.Count);
+            foreach (var b in expectedBrands)
+            {
+                Assert.Contains(options.Brands, o => o.Value == (int)b && o.Name == b.ToString());
+            }
         }
 
         private static CardsController CreateController(string? userId, Func<object, object?>? mediatorHandler = null)

@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using NobleBank.Application.Features.Cards.Commands.RequestCard;
 using NobleBank.Application.Features.Cards.Queries.GetAllCards;
 using NobleBank.Application.Features.Cards.Queries.GetCardById;
+using NobleBank.Application.Features.Cards.Queries.GetCardOptions;
+using NobleBank.Domain.Common;
 
 namespace NobleBank.API.Controllers
 {
@@ -51,6 +53,20 @@ namespace NobleBank.API.Controllers
             }
 
             return Ok(card);
+        }
+
+        [HttpGet("options")]
+        public ActionResult<CardOptionsDto> GetOptions()
+        {
+            var options = new CardOptionsDto(
+                Types: Enum.GetValues<CardEnum.Type>()
+                    .Select(t => new CardEnumOption((int)t, t.ToString()))
+                    .ToList(),
+                Brands: Enum.GetValues<CardEnum.Brand>()
+                    .Select(b => new CardEnumOption((int)b, b.ToString()))
+                    .ToList());
+
+            return Ok(options);
         }
 
         [HttpPost("request")]
