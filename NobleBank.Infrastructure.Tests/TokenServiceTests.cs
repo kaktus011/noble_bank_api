@@ -56,6 +56,82 @@ namespace NobleBank.Infrastructure.Tests
         }
 
         [Fact]
+        public async Task GetSessionIdFromToken_ShouldReturnSidClaim()
+        {
+            // Arrange
+            var service = TestHelpers.CreateTokenService();
+            var sessionId = Guid.NewGuid();
+            var token = await service.GenerateToken("user-1", "john.doe@example.com", "John Doe", sessionId);
+
+            // Act
+            Guid? extracted = service.GetSessionIdFromToken(token);
+
+            // Assert
+            Assert.Equal(sessionId, extracted);
+        }
+
+        [Fact]
+        public void GetSessionIdFromToken_WithInvalidToken_ShouldReturnNull()
+        {
+            // Arrange
+            var service = TestHelpers.CreateTokenService();
+
+            // Act
+            Guid? extracted = service.GetSessionIdFromToken("not-a-jwt");
+
+            // Assert
+            Assert.Null(extracted);
+        }
+
+        [Fact]
+        public async Task GetUserIdFromToken_ShouldReturnSubClaim()
+        {
+            // Arrange
+            var service = TestHelpers.CreateTokenService();
+            var token = await service.GenerateToken("user-42", "u@example.com", "U", Guid.NewGuid());
+
+            // Act
+            string? extracted = service.GetUserIdFromToken(token);
+
+            // Assert
+            Assert.Equal("user-42", extracted);
+        }
+
+        [Fact]
+        public async Task GetUserIdFromToken_WithBearerPrefix_ShouldStripAndParse()
+        {
+            // Arrange
+            var service = TestHelpers.CreateTokenService();
+            var token = await service.GenerateToken("user-42", "u@example.com", "U", Guid.NewGuid());
+
+            // Act
+            string? extracted = service.GetUserIdFromToken($"Bearer {token}");
+
+            // Assert
+            Assert.Equal("user-42", extracted);
+        }
+
+        [Fact]
+        public async Task GetUserIdFromToken_WithTamperedSignature_ShouldReturnNull()
+        {
+            // Arrange
+            var service = TestHelpers.CreateTokenService();
+            var token = await service.GenerateToken("user-42", "u@example.com", "U", Guid.NewGuid());
+            // Flip the last character of the signature segment.
+            var parts = token.Split('.');
+            parts[2] = parts[2].Length > 0
+                ? parts[2][..^1] + (parts[2][^1] == 'A' ? 'B' : 'A')
+                : "x";
+            var tampered = string.Join('.', parts);
+
+            // Act
+            string? extracted = service.GetUserIdFromToken(tampered);
+
+            // Assert
+            Assert.Null(extracted);
+        }
+
+        [Fact]
         public async Task GenerateToken_WithNoRoles_ShouldNotIncludeRoleClaims()
         {
             // Arrange

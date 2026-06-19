@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using NobleBank.Application.Common.Interfaces;
 using NobleBank.Application.Features.Auth;
+using NobleBank.Application.Features.Auth.Commands.ClearSession;
 using NobleBank.Application.Features.Auth.Commands.Login;
 using NobleBank.Application.Features.Auth.Commands.Register;
 using NobleBank.Domain.Entities;
@@ -167,6 +168,75 @@ namespace NobleBank.Application.Tests
             Assert.False(result.Success);
             Assert.Null(result.Token);
             Assert.Equal("Invalid credentials", result.Error);
+        }
+
+        [Fact]
+        public async Task ClearSessionCommandHandler_WhenSessionMatches_ShouldClearSession()
+        {
+            // Arrange
+            var context = CreateDbContext();
+            var currentSession = Guid.NewGuid();
+            context.Users.Add(new ApplicationUser { Id = "user-1", SessionId = currentSession });
+            await context.SaveChangesAsync(CancellationToken.None);
+
+            var handler = new ClearSessionCommandHandler(context);
+
+            // Act
+            await handler.Handle(new ClearSessionCommand("user-1", currentSession), CancellationToken.None);
+
+            // Assert
+            var user = await context.Users.FirstAsync(u => u.Id == "user-1");
+            Assert.Null(user.SessionId);
+        }
+
+        [Fact]
+        public async Task ClearSessionCommandHandler_WhenSessionMismatches_ShouldNotClearSession()
+        {
+            // Arrange — simulates the bug scenario: PC1's stale token tries to clear
+            // a session that has already been replaced by PC2's force-login (S2).
+            var context = CreateDbContext();
+            var currentSession = Guid.NewGuid();
+            var staleSession = Guid.NewGuid();
+            context.Users.Add(new ApplicationUser { Id = "user-1", SessionId = currentSession });
+            await context.SaveChangesAsync(CancellationToken.None);
+
+            var handler = new ClearSessionCommandHandler(context);
+
+            // Act
+            await handler.Handle(new ClearSessionCommand("user-1", staleSession), CancellationToken.None);
+
+            // Assert — PC2's session (currentSession) must remain intact
+            var user = await context.Users.FirstAsync(u => u.Id == "user-1");
+            Assert.Equal(currentSession, user.SessionId);
+        }
+
+        [Fact]
+        public async Task ClearSessionCommandHandler_WhenSessionIdIsNull_ShouldClearUnconditionally()
+        {
+            // Arrange — caller has no session info (e.g. admin-triggered clear).
+            var context = CreateDbContext();
+            context.Users.Add(new ApplicationUser { Id = "user-1", SessionId = Guid.NewGuid() });
+            await context.SaveChangesAsync(CancellationToken.None);
+
+            var handler = new ClearSessionCommandHandler(context);
+
+            // Act
+            await handler.Handle(new ClearSessionCommand("user-1", null), CancellationToken.None);
+
+            // Assert
+            var user = await context.Users.FirstAsync(u => u.Id == "user-1");
+            Assert.Null(user.SessionId);
+        }
+
+        [Fact]
+        public async Task ClearSessionCommandHandler_WhenUserNotFound_ShouldNoOp()
+        {
+            // Arrange
+            var context = CreateDbContext();
+            var handler = new ClearSessionCommandHandler(context);
+
+            // Act + Assert — must not throw
+            await handler.Handle(new ClearSessionCommand("nope", Guid.NewGuid()), CancellationToken.None);
         }
 
         private static TestApplicationDbContext CreateDbContext()
