@@ -25,11 +25,31 @@ namespace NobleBank.Infrastructure.Identity
 
         public string? GetUserIdFromToken(string token)
         {
+            ClaimsPrincipal? principal = ValidateToken(token);
+            if (principal is null)
+            {
+                return null;
+            }
+
+            return principal.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                   ?? principal.FindFirstValue(ClaimTypes.NameIdentifier);
+        }
+
+        public Guid? GetSessionIdFromToken(string token)
+        {
+            ClaimsPrincipal? principal = ValidateToken(token);
+            string? sid = principal?.FindFirstValue("sid");
+
+            return Guid.TryParse(sid, out var sessionId) ? sessionId : null;
+        }
+
+        private ClaimsPrincipal? ValidateToken(string token)
+        {
             if (string.IsNullOrWhiteSpace(token))
             {
                 return null;
             }
-            
+
             try
             {
                 token = token.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
@@ -48,10 +68,7 @@ namespace NobleBank.Infrastructure.Identity
                     ValidateLifetime = false
                 };
 
-                ClaimsPrincipal principal = new JwtSecurityTokenHandler().ValidateToken(token, parameters, out _);
-
-                return principal.FindFirstValue(JwtRegisteredClaimNames.Sub)
-                       ?? principal.FindFirstValue(ClaimTypes.NameIdentifier);
+                return new JwtSecurityTokenHandler().ValidateToken(token, parameters, out _);
             }
             catch
             {

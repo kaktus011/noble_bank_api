@@ -201,6 +201,8 @@ namespace NobleBank.Application.Tests
             }
 
             public string? GetUserIdFromToken(string token) => null;
+
+            public Guid? GetSessionIdFromToken(string token) => null;
         }
 
         private sealed class TestApplicationDbContext : DbContext, IApplicationDbContext

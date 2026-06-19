@@ -105,6 +105,8 @@ namespace NobleBank.Application.Tests.CardTests
             }
 
             public string? GetUserIdFromToken(string token) => null;
+
+            public Guid? GetSessionIdFromToken(string token) => null;
         }
     }
 }
