@@ -14,6 +14,7 @@
 
             public const string PasswordLength = "Password must be at least 8 characters.";
             public const string PasswordUppercase = "Password must contain an uppercase letter.";
+            public const string PasswordLowercase = "Password must contain a lowercase letter.";
             public const string PasswordNumber = "Password must contain a number.";
             public const string PasswordSpecialChar = "Password must contain a special character.";
 

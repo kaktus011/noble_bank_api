@@ -15,6 +15,7 @@ namespace NobleBank.Application.Features.Auth.Commands.Register
                 .NotEmpty().WithMessage(Constants.Requirements.PasswordRequired)
                 .MinimumLength(8).WithMessage(Constants.Requirements.PasswordLength)
                 .Matches("[A-Z]").WithMessage(Constants.Requirements.PasswordUppercase)
+                .Matches("[a-z]").WithMessage(Constants.Requirements.PasswordLowercase)
                 .Matches("[0-9]").WithMessage(Constants.Requirements.PasswordNumber)
                 .Matches("[^a-zA-Z0-9]").WithMessage(Constants.Requirements.PasswordSpecialChar);
 
