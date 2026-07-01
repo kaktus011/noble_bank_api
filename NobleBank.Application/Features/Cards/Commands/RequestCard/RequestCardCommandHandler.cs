@@ -88,17 +88,18 @@ namespace NobleBank.Application.Features.Cards.Commands.RequestCard
 
         private string GenerateCardNumber(CardEnum.Brand brand)
         {
-            string prefix = brand switch
+            (string prefix, int totalLength) = brand switch
             {
-                CardEnum.Brand.Visa => "4",
-                CardEnum.Brand.Mastercard => "5",
-                CardEnum.Brand.AmericanExpress => "3",
-                CardEnum.Brand.Maestro => "6",
-                _ => "4"
+                CardEnum.Brand.Visa            => ("4748", 16),
+                CardEnum.Brand.Mastercard      => ("5354", 16),
+                CardEnum.Brand.AmericanExpress => ("3782", 15),
+                CardEnum.Brand.Maestro         => ("6759", 16),
+                _                              => ("4748", 16)
             };
 
+            int randomCount = totalLength - prefix.Length - 1;
             string randomDigits = string.Concat(
-                Enumerable.Range(0, 14)
+                Enumerable.Range(0, randomCount)
                     .Select(_ => System.Security.Cryptography.RandomNumberGenerator.GetInt32(0, 10).ToString()));
             string number = prefix + randomDigits;
 
