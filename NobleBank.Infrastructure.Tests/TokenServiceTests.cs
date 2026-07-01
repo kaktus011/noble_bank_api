@@ -117,10 +117,13 @@ namespace NobleBank.Infrastructure.Tests
             // Arrange
             var service = TestHelpers.CreateTokenService();
             var token = await service.GenerateToken("user-42", "u@example.com", "U", Guid.NewGuid());
-            // Flip the last character of the signature segment.
+            // Flip the first character of the signature segment. The last base64url
+            // character of an HMAC-SHA256 signature carries only 4 significant bits
+            // (the trailing 2 bits are padding and discarded on decode), so tampering
+            // there can produce an identical byte sequence and validate successfully.
             var parts = token.Split('.');
             parts[2] = parts[2].Length > 0
-                ? parts[2][..^1] + (parts[2][^1] == 'A' ? 'B' : 'A')
+                ? (parts[2][0] == 'A' ? 'B' : 'A') + parts[2][1..]
                 : "x";
             var tampered = string.Join('.', parts);
 
